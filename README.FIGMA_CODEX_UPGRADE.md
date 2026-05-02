@@ -10,6 +10,7 @@
 - Open Design 可识别的 Figma-native Skills 草案
 - Figma-native Design System 模板
 - 研究结论、架构方案、schema、验收清单
+- 用户文档、Figma MCP setup、maintainer guide
 - Beads / `bd` 任务初始化脚本与任务详情
 - 黄金提示词与持续执行提示词
 
@@ -54,7 +55,10 @@ bash .ai/figma-codex/scripts/init-beads-tasks.sh
 codex mcp add figma --url https://mcp.figma.com/mcp
 # 按提示完成 Figma OAuth 授权
 
-# 5. 启动 Codex，让它按任务图逐项改造
+# 5. 验证本机 Codex 是否能看到 Figma MCP 配置
+bash .ai/figma-codex/scripts/check-figma-mcp.sh
+
+# 6. 启动 Codex，让它按任务图逐项改造
 cat GOLDEN_PROMPT.md
 ```
 
@@ -74,7 +78,7 @@ bash .ai/figma-codex/scripts/codex-work-next.sh
 
 ```text
 .ai/figma-codex/
-  docs/                       # 调研、架构、实施、QA、维护文档
+  docs/                       # 调研、架构、实施、QA、用户/维护文档
   prompts/                    # 黄金提示词、下一任务提示词、Figma canvas prompt 合约
   scripts/                    # 安装脚本、Beads 初始化脚本、Codex 执行脚本
   tasks/                      # 每个 bd 任务的详细 body 文件
@@ -117,3 +121,15 @@ Open Design 显示 Figma result card 与 lint report
 ```
 
 完成这个闭环后，再扩展 landing、dashboard、mobile flow、canvas critique、design system import、Code Connect 等能力。
+
+## 用户与维护文档
+
+- 新用户先读 [Figma-native user guide](.ai/figma-codex/docs/USER_GUIDE.md)：包含 mocked flow、真实 MCP 配置、第一次 canvas generation、result card 解读和 troubleshooting。
+- Figma/Codex 连接细节见 [Figma MCP setup](.ai/figma-codex/docs/FIGMA_MCP_SETUP.md)。
+- 贡献者扩展 skills、design systems、result schema、parser 或 UI 时读 [Maintainer guide](.ai/figma-codex/docs/MAINTAINER_GUIDE.md)。
+- 发布前的授权、商标和第三方归属边界见 [license / trademark / attribution notes](.ai/figma-codex/docs/LICENSE_TRADEMARK_ATTRIBUTION.md)。
+- 没有 Figma credentials 的贡献者可以运行：
+
+```bash
+pnpm --filter @open-design/e2e test -- figma-native-mocked-flow.test.tsx
+```

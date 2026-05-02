@@ -322,6 +322,29 @@ The first load:
 
 Type a prompt, hit **Send**, watch the question form arrive, fill it, watch the todo card stream, watch the artifact render. Click **Save to disk** or download as a project ZIP.
 
+### Figma-native canvas mode
+
+This fork is being upgraded into **Open Design Canvas**, a Figma-native AI design
+workbench built on Open Design, Codex CLI, Beads, and Figma Remote MCP.
+Figma-native mode is additive: existing HTML prototype, deck, media, and template
+workflows remain valid, while Figma-native skills produce editable Figma pages,
+frames, components, variables, styles, Auto Layout, and semantic layer names.
+
+Start with the upgrade docs:
+
+- [Figma-native user guide](.ai/figma-codex/docs/USER_GUIDE.md) — mocked flow,
+  first canvas generation, result card fields, limitations, and troubleshooting.
+- [Figma MCP setup](.ai/figma-codex/docs/FIGMA_MCP_SETUP.md) — Codex MCP setup,
+  OAuth, seat/permission notes, health checks, and smoke-test guidance.
+- [Maintainer guide](.ai/figma-codex/docs/MAINTAINER_GUIDE.md) — how to add
+  Figma-native skills, design systems, schemas, parser fixtures, and UI tests.
+
+New contributors can validate the Figma-native path without Figma credentials:
+
+```bash
+pnpm --filter @open-design/e2e test -- figma-native-mocked-flow.test.tsx
+```
+
 ### First-run state (`./.od/`)
 
 The daemon owns one hidden folder at the repo root. Everything in it is gitignored and machine-local — never commit it.
@@ -734,4 +757,4 @@ The magazine / horizontal-swipe deck flow under [`skills/guizang-ppt/`](skills/g
 
 ## License
 
-Apache-2.0. The bundled `skills/guizang-ppt/` retains its original [LICENSE](skills/guizang-ppt/LICENSE) (MIT) and authorship attribution to [op7418](https://github.com/op7418). The bundled `skills/html-ppt/` retains its original [LICENSE](skills/html-ppt/LICENSE) (MIT) and authorship attribution to [lewislulu](https://github.com/lewislulu).
+Apache-2.0. The bundled `skills/guizang-ppt/` retains its original [LICENSE](skills/guizang-ppt/LICENSE) (MIT) and authorship attribution to [op7418](https://github.com/op7418). The bundled `skills/html-ppt/` retains its original [LICENSE](skills/html-ppt/LICENSE) (MIT) and authorship attribution to [lewislulu](https://github.com/lewislulu). Product-named design systems are inspiration references, not official brand kits or endorsed assets; see the Open Design Canvas [license / trademark / attribution notes](.ai/figma-codex/docs/LICENSE_TRADEMARK_ATTRIBUTION.md) for release guidance.

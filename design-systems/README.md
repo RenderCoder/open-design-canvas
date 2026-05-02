@@ -96,7 +96,9 @@ For now, the original importer lives at the top of the
 The 70 product systems are sourced from
 [`VoltAgent/awesome-design-md`](https://github.com/VoltAgent/awesome-design-md)
 (MIT, © VoltAgent contributors). They are aesthetic *inspirations* — none
-of them are official assets of the brands they reference.
+of them are official assets of the brands they reference. They must not be
+treated as official brand kits, and generated output should use neutral logo
+placeholders unless the user supplies licensed assets.
 
 The `kami/` system adapts tokens, type rules, and the "ten invariants" from
 [`tw93/kami`](https://github.com/tw93/kami) (MIT, © Tw93 and contributors),
@@ -104,3 +106,7 @@ a Claude skill for typesetting professional documents and slide decks.
 
 The 57 design skills are sourced from
 [`bergside/awesome-design-skills`](https://github.com/bergside/awesome-design-skills).
+
+See the release-facing
+[`license / trademark / attribution notes`](../.ai/figma-codex/docs/LICENSE_TRADEMARK_ATTRIBUTION.md)
+for the full brand boundary.
