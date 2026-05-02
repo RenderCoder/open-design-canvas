@@ -3,6 +3,8 @@
 // files. Title comes from the first H1. Category comes from a
 // `> Category: <name>` blockquote line beneath the H1. Summary is the first
 // paragraph between the H1 and the next heading (Category line stripped).
+// Figma-native systems may also ship FIGMA.md, tokens.json, and
+// component-map.json as optional companion files.
 
 import { readdir, readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
@@ -31,6 +33,7 @@ export async function listDesignSystems(root) {
         summary: summarize(raw),
         swatches: extractSwatches(raw),
         surface: extractSurface(raw),
+        figma: await readFigmaCompanionSummary(root, entry.name),
         body: raw,
       });
     } catch {
@@ -44,6 +47,64 @@ export async function readDesignSystem(root, id) {
   const file = path.join(root, id, 'DESIGN.md');
   try {
     return await readFile(file, 'utf8');
+  } catch {
+    return null;
+  }
+}
+
+export async function readDesignSystemDetail(root, id) {
+  const file = path.join(root, id, 'DESIGN.md');
+  try {
+    const body = await readFile(file, 'utf8');
+    const figma = await readFigmaCompanionDetail(root, id);
+    const titleMatch = /^#\s+(.+?)\s*$/m.exec(body);
+    return {
+      id,
+      title: cleanTitle(titleMatch?.[1] ?? id),
+      category: extractCategory(body) ?? 'Uncategorized',
+      summary: summarize(body),
+      swatches: extractSwatches(body),
+      surface: extractSurface(body),
+      body,
+      figma,
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function readFigmaCompanionSummary(root, id) {
+  const detail = await readFigmaCompanionDetail(root, id);
+  if (!detail) return null;
+  return {
+    hasGuidance: Boolean(detail.guidance),
+    hasTokens: Boolean(detail.tokens),
+    hasComponentMap: Boolean(detail.componentMap),
+  };
+}
+
+async function readFigmaCompanionDetail(root, id) {
+  const dir = path.join(root, id);
+  const [guidance, tokens, componentMap] = await Promise.all([
+    readOptionalText(path.join(dir, 'FIGMA.md')),
+    readOptionalJson(path.join(dir, 'tokens.json')),
+    readOptionalJson(path.join(dir, 'component-map.json')),
+  ]);
+  if (!guidance && !tokens && !componentMap) return null;
+  return { guidance, tokens, componentMap };
+}
+
+async function readOptionalText(file) {
+  try {
+    return await readFile(file, 'utf8');
+  } catch {
+    return null;
+  }
+}
+
+async function readOptionalJson(file) {
+  try {
+    return JSON.parse(await readFile(file, 'utf8'));
   } catch {
     return null;
   }
@@ -69,7 +130,7 @@ function extractCategory(raw) {
   return m?.[1];
 }
 
-const KNOWN_SURFACES = new Set(['web', 'image', 'video', 'audio']);
+const KNOWN_SURFACES = new Set(['web', 'figma', 'image', 'video', 'audio']);
 function extractSurface(raw) {
   const m = /^>\s*Surface:\s*(.+?)\s*$/im.exec(raw);
   if (!m) return 'web';

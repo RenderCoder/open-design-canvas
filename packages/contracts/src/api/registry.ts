@@ -65,11 +65,21 @@ export interface DesignSystemSummary {
   category: string;
   summary: string;
   swatches?: string[];
-  surface?: 'web' | 'image' | 'video' | 'audio';
+  surface?: 'web' | 'figma' | 'image' | 'video' | 'audio';
+  figma?: {
+    hasGuidance: boolean;
+    hasTokens: boolean;
+    hasComponentMap: boolean;
+  } | null;
 }
 
 export interface DesignSystemDetail extends DesignSystemSummary {
   body: string;
+  figma?: {
+    guidance: string | null;
+    tokens: unknown | null;
+    componentMap: unknown | null;
+  } | null;
 }
 
 export interface DesignSystemsResponse {

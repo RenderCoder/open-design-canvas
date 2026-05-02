@@ -55,6 +55,22 @@ Both the boilerplate prefix `Design System Inspired by ` and the
 `> Category: ...` line are stripped from the dropdown label and the summary
 preview at runtime — they're only metadata.
 
+## Figma-native companion files
+
+Figma-native systems can add optional companion files alongside `DESIGN.md`:
+
+- `FIGMA.md` — canvas-specific MCP workflow, variable/style names, component
+  lookup order, Auto Layout rules, and validation expectations.
+- `tokens.json` — machine-readable variables and styles for color, spacing,
+  radius, typography, grids, and effects.
+- `component-map.json` — component search queries, variant hints, and semantic
+  fallback recipes.
+
+The daemon still discovers systems by `DESIGN.md`, so existing web systems do
+not need these files. When companion files are present, `/api/design-systems`
+marks their availability and `/api/design-systems/:id` returns the parsed
+Figma bridge content for prompt composition and future canvas validation.
+
 ## Adding your own
 
 Drop a new folder containing a `DESIGN.md` and it shows up on next refresh.

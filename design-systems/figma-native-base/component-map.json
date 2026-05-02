@@ -1,41 +1,149 @@
 {
+  "$schema": "https://open-design.local/schemas/figma-component-map.v1.json",
+  "name": "figma-native-base",
+  "searchBeforePrimitive": true,
+  "preferInstances": true,
+  "reportFallbacks": true,
   "components": [
     {
-      "query": "Button Primary",
-      "fallback": "Frame with horizontal Auto Layout, text label, action primary fill"
+      "slot": "button.primary",
+      "figmaName": "Button / Primary",
+      "search": ["Button Primary", "Button / Primary", "Button"],
+      "variant": { "intent": "primary" },
+      "fallback": {
+        "nodeType": "FRAME",
+        "autoLayout": "HORIZONTAL",
+        "fills": ["color/action/primary"],
+        "textStyle": "Text/Body/Small",
+        "radius": "radius/8",
+        "padding": ["space/12", "space/16"],
+        "reportAs": "Button / Primary fallback"
+      }
     },
     {
-      "query": "Button Secondary",
-      "fallback": "Frame with border, transparent fill, text label"
+      "slot": "button.secondary",
+      "figmaName": "Button / Secondary",
+      "search": ["Button Secondary", "Button / Secondary", "Button"],
+      "variant": { "intent": "secondary" },
+      "fallback": {
+        "nodeType": "FRAME",
+        "autoLayout": "HORIZONTAL",
+        "strokes": ["color/border/default"],
+        "textStyle": "Text/Body/Small",
+        "radius": "radius/8",
+        "padding": ["space/12", "space/16"],
+        "reportAs": "Button / Secondary fallback"
+      }
     },
     {
-      "query": "Card",
-      "fallback": "Frame with surface fill, border, radius/12, vertical Auto Layout"
+      "slot": "card.default",
+      "figmaName": "Card / Default",
+      "search": ["Card Default", "Card / Default", "Card"],
+      "fallback": {
+        "nodeType": "FRAME",
+        "autoLayout": "VERTICAL",
+        "fills": ["color/surface/default"],
+        "strokes": ["color/border/default"],
+        "radius": "radius/12",
+        "padding": ["space/24"],
+        "itemSpacing": "space/16",
+        "reportAs": "Card / Default fallback"
+      }
     },
     {
-      "query": "Input",
-      "fallback": "Frame with border, placeholder text, radius/8"
+      "slot": "input.default",
+      "figmaName": "Input / Default",
+      "search": ["Input Default", "Input / Default", "Text Field", "Input"],
+      "fallback": {
+        "nodeType": "FRAME",
+        "autoLayout": "HORIZONTAL",
+        "fills": ["color/surface/default"],
+        "strokes": ["color/border/default"],
+        "textStyle": "Text/Body/Medium",
+        "radius": "radius/8",
+        "padding": ["space/12", "space/16"],
+        "reportAs": "Input / Default fallback"
+      }
     },
     {
-      "query": "Badge",
-      "fallback": "Small horizontal frame with label text"
+      "slot": "badge.default",
+      "figmaName": "Badge / Default",
+      "search": ["Badge Default", "Badge / Default", "Badge"],
+      "fallback": {
+        "nodeType": "FRAME",
+        "autoLayout": "HORIZONTAL",
+        "fills": ["color/bg/subtle"],
+        "textStyle": "Text/Caption",
+        "radius": "radius/16",
+        "padding": ["space/4", "space/8"],
+        "reportAs": "Badge / Default fallback"
+      }
     },
     {
-      "query": "NavItem",
-      "fallback": "Horizontal frame with icon placeholder and label"
+      "slot": "nav.item",
+      "figmaName": "NavItem / Default",
+      "search": ["NavItem Default", "NavItem / Default", "Navigation Item", "Nav Item"],
+      "fallback": {
+        "nodeType": "FRAME",
+        "autoLayout": "HORIZONTAL",
+        "textStyle": "Text/Body/Small",
+        "padding": ["space/8", "space/12"],
+        "itemSpacing": "space/8",
+        "reportAs": "NavItem / Default fallback"
+      }
     },
     {
-      "query": "PricingCard",
-      "fallback": "Card with plan name, price, feature list, CTA"
+      "slot": "table.default",
+      "figmaName": "Table / Default",
+      "search": ["Table Default", "Table / Default", "Data Table", "Table"],
+      "fallback": {
+        "nodeType": "FRAME",
+        "autoLayout": "VERTICAL",
+        "fills": ["color/surface/default"],
+        "strokes": ["color/border/default"],
+        "radius": "radius/12",
+        "reportAs": "Table / Default fallback"
+      }
     },
     {
-      "query": "FAQItem",
-      "fallback": "Vertical frame with question and answer text"
+      "slot": "pricing.card",
+      "figmaName": "PricingCard / Default",
+      "search": ["PricingCard Default", "PricingCard / Default", "Pricing Card"],
+      "fallback": {
+        "nodeType": "FRAME",
+        "autoLayout": "VERTICAL",
+        "fills": ["color/surface/default"],
+        "strokes": ["color/border/default"],
+        "radius": "radius/16",
+        "padding": ["space/24"],
+        "itemSpacing": "space/16",
+        "reportAs": "PricingCard / Default fallback"
+      }
+    },
+    {
+      "slot": "faq.item",
+      "figmaName": "FAQItem / Default",
+      "search": ["FAQItem Default", "FAQItem / Default", "FAQ Item", "Accordion Item"],
+      "fallback": {
+        "nodeType": "FRAME",
+        "autoLayout": "VERTICAL",
+        "textStyle": "Text/Body/Medium",
+        "padding": ["space/16", "space/0"],
+        "itemSpacing": "space/8",
+        "reportAs": "FAQItem / Default fallback"
+      }
     }
   ],
-  "rules": {
-    "searchBeforePrimitive": true,
-    "reportFallbacks": true,
-    "preferInstances": true
+  "reporting": {
+    "fallbacksField": "hardcodedValues",
+    "missingLibrariesField": "knownIssues",
+    "requiredResultFields": [
+      "reusedComponents",
+      "variablesUsed",
+      "stylesUsed",
+      "hardcodedValues",
+      "checks",
+      "knownIssues"
+    ]
   }
 }

@@ -1,23 +1,37 @@
 # Figma Native Base Design System
 
+> Category: Figma Native
+> Surface: figma
+> Neutral, editable baseline for Figma-native canvas work. Pair with
+> `FIGMA.md`, `tokens.json`, and `component-map.json` for MCP implementation
+> guidance.
+
 ## 1. Color
 
-- Background: calm neutral, off-white or deep neutral depending on theme.
-- Surface: layered neutrals with subtle contrast.
-- Text: high contrast, no low-opacity body copy below accessible thresholds.
-- Accent: one primary action color, used sparingly.
-- Status: success/warning/danger reserved for state communication.
+- **Background:** `#F8F7F4` for page/canvas backgrounds.
+- **Subtle background:** `#EFEEE9` for alternate bands and quiet panels.
+- **Surface:** `#FFFFFF` for cards, tool surfaces, and modals.
+- **Elevated surface:** `#FCFCFA` for nested surfaces that need a slight lift.
+- **Primary text:** `#151515`, high contrast and never opacity-dimmed for body copy.
+- **Secondary text:** `#5F6368`, only for metadata and supporting copy.
+- **Default border:** `#E4E1DA` for dividers, card outlines, and input borders.
+- **Primary action:** `#2563EB`, used sparingly for core commands.
+- **Status:** success `#15803D`, warning `#B45309`, danger `#DC2626`; reserve
+  these for state communication.
 
 ## 2. Typography
 
-- Display: expressive but restrained.
-- Heading: clear scale with visible hierarchy.
-- Body: system sans or readable product font.
-- Mono: only for technical metadata or code-like labels.
+- Display: expressive but restrained; large enough to anchor one focal point.
+- Heading: clear scale with visible hierarchy and short line lengths.
+- Body: Inter or system sans, 16px base, generous line-height.
+- Caption: 12px or 13px only for metadata, never for primary instructions.
+- Mono: only for technical metadata, node IDs, or code-like labels.
 
 ## 3. Spacing
 
-Use an 8-point rhythm with small exceptions for optical balance.
+Use an 8-point rhythm with small exceptions for optical balance. Primary
+section gaps should come from `space/32` or `space/48`; dense controls should
+use `space/8`, `space/12`, or `space/16`.
 
 ## 4. Layout
 
@@ -25,10 +39,12 @@ Use an 8-point rhythm with small exceptions for optical balance.
 - One clear focal point per screen/section.
 - Use max-width containers on desktop.
 - Avoid ornamental clutter.
+- Name top-level frames by surface, viewport, and width, for example
+  `Landing / Desktop / 1440`.
 
 ## 5. Components
 
-Prioritize reusable patterns:
+Prioritize reusable Figma components or component sets before primitives:
 
 - Button
 - Input
@@ -39,6 +55,9 @@ Prioritize reusable patterns:
 - Table
 - PricingCard
 - FAQItem
+
+If a library component is unavailable, create a small semantic fallback frame
+and report it in the final Figma result.
 
 ## 6. Motion
 
@@ -60,3 +79,4 @@ This is a neutral base system for AI-generated Figma work. It should adapt to us
 - Screenshot-only mockups.
 - Overly generic SaaS copy.
 - Absolute-positioned frame soup.
+- Detached primitives where a component instance or variable exists.

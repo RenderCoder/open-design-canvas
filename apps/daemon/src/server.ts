@@ -16,7 +16,7 @@ import {
   sanitizeCustomModel,
 } from './agents.js';
 import { listSkills } from './skills.js';
-import { listDesignSystems, readDesignSystem } from './design-systems.js';
+import { listDesignSystems, readDesignSystem, readDesignSystemDetail } from './design-systems.js';
 import { attachAcpSession } from './acp.js';
 import { attachPiRpcSession } from './pi-rpc.js';
 import { createClaudeStreamHandler } from './claude-stream.js';
@@ -908,9 +908,9 @@ export async function startServer({ port = 7456, returnServer = false } = {}) {
 
   app.get('/api/design-systems/:id', async (req, res) => {
     try {
-      const body = await readDesignSystem(DESIGN_SYSTEMS_DIR, req.params.id);
-      if (body === null) return res.status(404).json({ error: 'design system not found' });
-      res.json({ id: req.params.id, body });
+      const designSystem = await readDesignSystemDetail(DESIGN_SYSTEMS_DIR, req.params.id);
+      if (designSystem === null) return res.status(404).json({ error: 'design system not found' });
+      res.json(designSystem);
     } catch (err) {
       res.status(500).json({ error: String(err) });
     }
