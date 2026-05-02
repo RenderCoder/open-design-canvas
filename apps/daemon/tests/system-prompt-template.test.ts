@@ -183,3 +183,42 @@ describe('composeSystemPrompt — metadata.promptTemplate', () => {
     expect(out).not.toContain('Source:');
   });
 });
+
+describe('composeSystemPrompt — figma-native directive', () => {
+  it('injects the Figma-native MCP canvas SOP for figma skills', () => {
+    const out = composeSystemPrompt({
+      skillMode: 'figma',
+      skillName: 'figma-native-screen',
+      skillBody: 'Create one native Figma screen.',
+    });
+
+    expect(out).toContain('# Figma-native canvas directive');
+    expect(out).toContain('final deliverable is editable Figma-native canvas');
+    expect(out).toContain('not HTML');
+    expect(out).toContain('not a screenshot-only mockup');
+    expect(out).toContain('Figma MCP tools');
+    expect(out).toContain('create_new_file');
+    expect(out).toContain('search_design_system');
+    expect(out).toContain('use_figma');
+    expect(out).toContain('Auto Layout');
+    expect(out).toContain('variables');
+    expect(out).toContain('styles');
+    expect(out).toContain('get_metadata');
+    expect(out).toContain('get_screenshot');
+    expect(out).toContain('get_variable_defs');
+    expect(out).toContain('"kind": "figma_native_result"');
+    expect(out).toContain('"checks"');
+  });
+
+  it('does not inject the Figma-native directive for non-Figma prompts', () => {
+    const out = composeSystemPrompt({
+      skillMode: 'prototype',
+      skillName: 'web-prototype',
+      skillBody: 'Build an HTML prototype.',
+    });
+
+    expect(out).not.toContain('# Figma-native canvas directive');
+    expect(out).not.toContain('"kind": "figma_native_result"');
+    expect(out).toContain('<artifact>');
+  });
+});

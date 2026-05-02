@@ -33,6 +33,7 @@ import type { ProjectMetadata, ProjectTemplate } from '../api/projects';
 import { OFFICIAL_DESIGNER_PROMPT } from './official-system';
 import { DISCOVERY_AND_PHILOSOPHY } from './discovery';
 import { DECK_FRAMEWORK_DIRECTIVE } from './deck-framework';
+import { FIGMA_NATIVE_DIRECTIVE } from './figma-native';
 import { MEDIA_GENERATION_CONTRACT } from './media-contract';
 
 export const BASE_SYSTEM_PROMPT = OFFICIAL_DESIGNER_PROMPT;
@@ -45,6 +46,7 @@ export interface ComposeInput {
     | 'deck'
     | 'template'
     | 'design-system'
+    | 'figma'
     | 'image'
     | 'video'
     | 'audio'
@@ -118,6 +120,11 @@ export function composeSystemPrompt({
     !!skillBody && /assets\/template\.html/.test(skillBody);
   if (isDeckProject && !hasSkillSeed) {
     parts.push(`\n\n---\n\n${DECK_FRAMEWORK_DIRECTIVE}`);
+  }
+
+  const isFigmaNativeProject = skillMode === 'figma';
+  if (isFigmaNativeProject) {
+    parts.push(`\n\n---\n\n${FIGMA_NATIVE_DIRECTIVE}`);
   }
 
   const isMediaSurface =
