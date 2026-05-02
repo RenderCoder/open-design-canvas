@@ -4,9 +4,7 @@
   "type": "object",
   "required": [
     "kind",
-    "status",
-    "fileUrl",
-    "checks"
+    "status"
   ],
   "properties": {
     "kind": {
@@ -29,9 +27,177 @@
     "pageName": {
       "type": "string"
     },
+    "rootFrames": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/nodeRef"
+      }
+    },
     "rootFrame": {
+      "$ref": "#/$defs/nodeRef",
+      "description": "Legacy singular alias accepted by parsers and normalized to rootFrames."
+    },
+    "created": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/nodeRef"
+      }
+    },
+    "updated": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/nodeRef"
+      }
+    },
+    "reusedComponents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "nodeId": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "variables": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "variablesUsed": {
+      "type": "array",
+      "description": "Legacy alias accepted by parsers and normalized to variables.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "styles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "stylesUsed": {
+      "type": "array",
+      "description": "Legacy alias accepted by parsers and normalized to styles.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "hardcodedValues": {
+      "type": "array",
+      "items": {}
+    },
+    "checks": {
       "type": "object",
       "properties": {
+        "metadata": {
+          "$ref": "#/$defs/checkStatus"
+        },
+        "screenshot": {
+          "$ref": "#/$defs/checkStatus"
+        },
+        "variables": {
+          "$ref": "#/$defs/checkStatus"
+        },
+        "autoLayout": {
+          "$ref": "#/$defs/checkStatus"
+        },
+        "semanticNames": {
+          "$ref": "#/$defs/checkStatus"
+        }
+      },
+      "additionalProperties": true
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "object",
+            "required": [
+              "message"
+            ],
+            "properties": {
+              "severity": {
+                "enum": [
+                  "info",
+                  "warning",
+                  "error"
+                ]
+              },
+              "message": {
+                "type": "string"
+              },
+              "nodeId": {
+                "type": "string"
+              },
+              "check": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "knownIssues": {
+      "type": "array",
+      "description": "Legacy alias accepted by parsers and normalized to issues.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "nextActions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "nextIteration": {
+      "type": "array",
+      "description": "Legacy alias accepted by parsers and normalized to nextActions.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "mcpEvents": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  },
+  "$defs": {
+    "checkStatus": {
+      "enum": [
+        "passed",
+        "failed",
+        "skipped",
+        "unknown"
+      ]
+    },
+    "nodeRef": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
         "name": {
           "type": "string"
         },
@@ -46,100 +212,6 @@
         }
       },
       "additionalProperties": true
-    },
-    "created": {
-      "type": "array",
-      "items": {
-        "type": "object"
-      }
-    },
-    "updated": {
-      "type": "array",
-      "items": {
-        "type": "object"
-      }
-    },
-    "reusedComponents": {
-      "type": "array",
-      "items": {
-        "type": "object"
-      }
-    },
-    "variablesUsed": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "stylesUsed": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "hardcodedValues": {
-      "type": "array",
-      "items": {
-        "type": "object"
-      }
-    },
-    "checks": {
-      "type": "object",
-      "properties": {
-        "metadata": {
-          "enum": [
-            "passed",
-            "failed",
-            "skipped",
-            "unknown"
-          ]
-        },
-        "screenshot": {
-          "enum": [
-            "passed",
-            "failed",
-            "skipped",
-            "unknown"
-          ]
-        },
-        "variables": {
-          "enum": [
-            "passed",
-            "failed",
-            "skipped",
-            "unknown"
-          ]
-        },
-        "autoLayout": {
-          "enum": [
-            "passed",
-            "failed",
-            "skipped",
-            "unknown"
-          ]
-        },
-        "semanticNames": {
-          "enum": [
-            "passed",
-            "failed",
-            "skipped",
-            "unknown"
-          ]
-        }
-      },
-      "additionalProperties": true
-    },
-    "knownIssues": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "nextIteration": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
     }
   },
   "additionalProperties": true

@@ -1,0 +1,48 @@
+{
+  "kind": "figma_native_result",
+  "status": "completed",
+  "fileUrl": "https://www.figma.com/design/demo-file/Product",
+  "fileKey": "demo-file",
+  "pageName": "AI Landing Exploration",
+  "rootFrames": [
+    {
+      "name": "Landing / Desktop / 1440",
+      "nodeId": "1:2",
+      "width": 1440,
+      "height": 2400
+    }
+  ],
+  "created": [
+    {
+      "type": "FRAME",
+      "name": "Hero",
+      "nodeId": "1:3"
+    }
+  ],
+  "updated": [],
+  "reusedComponents": [
+    {
+      "name": "Button / Primary",
+      "source": "team library"
+    }
+  ],
+  "variables": ["color/bg/default", "space/8"],
+  "styles": ["Text/Display/Large"],
+  "hardcodedValues": [],
+  "checks": {
+    "metadata": "passed",
+    "screenshot": "passed",
+    "variables": "passed",
+    "autoLayout": "passed",
+    "semanticNames": "passed"
+  },
+  "issues": [],
+  "nextActions": ["Add mobile variant"],
+  "mcpEvents": [
+    {
+      "server": "mcp__figma",
+      "tool": "use_figma",
+      "status": "completed"
+    }
+  ]
+}

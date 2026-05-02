@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createHtmlArtifactManifest, inferLegacyManifest } from '../artifacts/manifest';
 import { createArtifactParser } from '../artifacts/parser';
+import { parseFigmaNativeResultText } from '../artifacts/figma-result';
 import { useT } from '../i18n';
 import { streamMessage } from '../providers/anthropic';
 import {
@@ -711,6 +712,26 @@ export function ProjectView({
         }
       };
 
+      const emitFigmaResultIfPresent = () => {
+        updateAssistant((prev) => {
+          const parsed = parseFigmaNativeResultText(prev.content);
+          if (!parsed.ok) return prev;
+          const hasSameResult = (prev.events ?? []).some(
+            (event) =>
+              event.kind === 'figma_result' &&
+              event.result.fileUrl === parsed.result.fileUrl &&
+              event.result.fileKey === parsed.result.fileKey &&
+              event.result.status === parsed.result.status,
+          );
+          if (hasSameResult) return prev;
+          return {
+            ...prev,
+            events: [...(prev.events ?? []), { kind: 'figma_result', result: parsed.result }],
+          };
+        });
+        persistAssistantSoon();
+      };
+
       const controller = new AbortController();
       const cancelController = new AbortController();
       abortRef.current = controller;
@@ -724,6 +745,7 @@ export function ProjectView({
               setArtifact((prev) => (prev ? { ...prev, html: ev.fullContent } : null));
             }
           }
+          emitFigmaResultIfPresent();
           updateAssistant((prev) => ({
             ...prev,
             endedAt: Date.now(),
@@ -1047,6 +1069,35 @@ export function ProjectView({
     const ds = designSystems.find((d) => d.id === project.designSystemId)?.title;
     return [skill, ds].filter(Boolean).join(' · ') || t('project.metaFreeform');
   }, [skills, designSystems, project.skillId, project.designSystemId, t]);
+  const activeSkill = useMemo(
+    () => skills.find((s) => s.id === project.skillId) ?? null,
+    [skills, project.skillId],
+  );
+  const activeDesignSystemTitle = useMemo(
+    () => designSystems.find((d) => d.id === project.designSystemId)?.title ?? null,
+    [designSystems, project.designSystemId],
+  );
+  const figmaTargetEnabled =
+    activeSkill?.mode === 'figma' ||
+    activeSkill?.surface === 'figma' ||
+    project.metadata?.figmaOutputSettings?.outputMode === 'figma-native';
+
+  const handleFigmaTargetChange = useCallback(
+    (next: {
+      figmaTarget: NonNullable<NonNullable<Project['metadata']>['figmaTarget']>;
+      figmaOutputSettings: NonNullable<NonNullable<Project['metadata']>['figmaOutputSettings']>;
+    }) => {
+      const metadata = {
+        ...(project.metadata ?? { kind: 'other' as const }),
+        figmaTarget: next.figmaTarget,
+        figmaOutputSettings: next.figmaOutputSettings,
+      };
+      const updated: Project = { ...project, metadata, updatedAt: Date.now() };
+      onProjectChange(updated);
+      void patchProject(project.id, { metadata });
+    },
+    [project, onProjectChange],
+  );
 
   const isDeck = useMemo(
     () => skills.find((s) => s.id === project.skillId)?.mode === 'deck',
@@ -1127,6 +1178,11 @@ export function ProjectView({
           onEnsureProject={handleEnsureProject}
           onSend={handleSend}
           onStop={handleStop}
+          figmaTarget={project.metadata?.figmaTarget}
+          figmaOutputSettings={project.metadata?.figmaOutputSettings}
+          onFigmaTargetChange={handleFigmaTargetChange}
+          figmaDesignSystemTitle={activeDesignSystemTitle}
+          figmaTargetEnabled={figmaTargetEnabled}
           onRequestOpenFile={requestOpenFile}
           initialDraft={initialDraft}
           onSubmitForm={(text) => {

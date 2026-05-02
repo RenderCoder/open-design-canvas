@@ -1,4 +1,5 @@
 import type { ProjectFile } from './files';
+import type { FigmaNativeResult } from '../figma-result';
 
 export type ChatRole = 'user' | 'assistant';
 
@@ -62,6 +63,7 @@ export type PersistedAgentEvent =
   | { kind: 'status'; label: string; detail?: string }
   | { kind: 'text'; text: string }
   | { kind: 'thinking'; text: string }
+  | { kind: 'figma_result'; result: FigmaNativeResult }
   | { kind: 'tool_use'; id: string; name: string; input: unknown }
   | { kind: 'tool_result'; toolUseId: string; content: string; isError: boolean }
   | { kind: 'usage'; inputTokens?: number; outputTokens?: number; costUsd?: number; durationMs?: number }

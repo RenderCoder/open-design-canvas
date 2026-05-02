@@ -1,5 +1,6 @@
 export * from './common';
 export * from './errors';
+export * from './figma-result';
 export * from './tasks';
 export * from './api/artifacts';
 export * from './api/chat';
