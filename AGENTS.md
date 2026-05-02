@@ -270,6 +270,13 @@ For more details, see README.md and docs/QUICKSTART.md.
 
 ## Figma MCP 使用规则
 
+- 配置 Codex 的 Figma Remote MCP：
+
+  ```bash
+  codex mcp add figma --url https://mcp.figma.com/mcp
+  ```
+
+  按提示完成 Figma OAuth；不要把 OAuth token、私有 file ID 或客户设计内容写入仓库。普通工程任务不要强制依赖 OAuth，真实 Figma smoke test 再验证连接。
 - 真实写画布前，必须确认 Figma MCP 已连接。
 - 需要新文件时优先使用 `create_new_file`；已有文件必须要求用户提供 Figma file URL 或 selection URL。
 - `use_figma` 前必须加载/遵守 Figma 官方 `figma-use` skill；若环境不可用，要把问题记录为阻塞或验证风险。
