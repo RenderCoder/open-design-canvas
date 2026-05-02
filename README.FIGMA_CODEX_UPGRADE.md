@@ -128,6 +128,7 @@ Open Design 显示 Figma result card 与 lint report
 - Figma/Codex 连接细节见 [Figma MCP setup](.ai/figma-codex/docs/FIGMA_MCP_SETUP.md)。
 - 贡献者扩展 skills、design systems、result schema、parser 或 UI 时读 [Maintainer guide](.ai/figma-codex/docs/MAINTAINER_GUIDE.md)。
 - 发布前的授权、商标和第三方归属边界见 [license / trademark / attribution notes](.ai/figma-codex/docs/LICENSE_TRADEMARK_ATTRIBUTION.md)。
+- 发布候选版本前检查 [release readiness checklist](.ai/figma-codex/docs/RELEASE_READINESS.md)：包含 pass/defer 状态、验证矩阵、known limitations 和 roadmap。
 - 没有 Figma credentials 的贡献者可以运行：
 
 ```bash

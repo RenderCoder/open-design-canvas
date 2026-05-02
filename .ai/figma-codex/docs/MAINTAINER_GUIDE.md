@@ -163,4 +163,5 @@ they are required, first run the mocked flow, then verify MCP configuration with
 - 对第三方品牌 design system 使用 “inspired by / reference style” 表达，避免暗示品牌授权。
 - 对 Figma MCP 的 beta、seat、permission、rate limit 明确说明。
 - 发布前复查 [`LICENSE_TRADEMARK_ATTRIBUTION.md`](LICENSE_TRADEMARK_ATTRIBUTION.md)。
+- 发布候选版本前复查 [`RELEASE_READINESS.md`](RELEASE_READINESS.md)，并更新 pass/defer 状态、验证结果、known limitations 和 roadmap。
 - 不要提交官方第三方 logo、wordmark、品牌模板、私有 Figma file ID 或客户设计内容；需要 logo 时使用中性 placeholder，并让用户提供已授权资产。
