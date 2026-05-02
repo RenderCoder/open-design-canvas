@@ -25,6 +25,7 @@ interface Props {
 export function ToolCard({ use, result, projectFileNames, onRequestOpenFile }: Props) {
   const name = use.name;
   const ctx: FileToolCtx = { projectFileNames, onRequestOpenFile };
+  if (isFigmaMcpTool(name, use.input)) return <FigmaMcpCard name={name} input={use.input} result={result} />;
   if (name === 'TodoWrite') return <TodoCard input={use.input} />;
   if (name === 'Write' || name === 'create_file')
     return <FileWriteCard input={use.input} result={result} ctx={ctx} />;
@@ -276,6 +277,114 @@ function WebSearchCard({ input }: { input: unknown }) {
   );
 }
 
+function FigmaMcpCard({
+  name,
+  input,
+  result,
+}: {
+  name: string;
+  input: unknown;
+  result?: Props['result'];
+}) {
+  const inputObj = asRecord(input);
+  const tool = figmaToolName(name, inputObj);
+  const args = asRecord(inputObj.args) ?? {};
+  const label = figmaProgressLabel(tool, result);
+  const details = figmaProgressDetails(tool, args);
+
+  return (
+    <div className="op-card op-figma">
+      <div className="op-card-head">
+        <span className="op-icon" aria-hidden>F</span>
+        <span className="op-title">{label}</span>
+        {details.map((detail) => (
+          <span className="op-meta" key={detail}>{detail}</span>
+        ))}
+        <ResultBadge result={result} />
+      </div>
+    </div>
+  );
+}
+
+function isFigmaMcpTool(name: string, input: unknown): boolean {
+  const inputObj = asRecord(input);
+  const server = typeof inputObj?.server === 'string' ? inputObj.server.toLowerCase() : '';
+  const tool = typeof inputObj?.tool === 'string' ? inputObj.tool.toLowerCase() : '';
+  const normalizedName = name.toLowerCase();
+  return (
+    normalizedName.startsWith('mcp__figma.') ||
+    normalizedName.startsWith('figma.') ||
+    server.includes('figma') ||
+    (inputObj?.kind === 'mcp_tool_call' && FIGMA_TOOL_LABELS.has(tool))
+  );
+}
+
+function figmaToolName(name: string, inputObj: Record<string, unknown> | null): string {
+  if (typeof inputObj?.tool === 'string') return inputObj.tool;
+  const parts = name.split('.');
+  return parts[parts.length - 1] ?? name;
+}
+
+function figmaProgressLabel(tool: string, result: Props['result']): string {
+  const base = FIGMA_TOOL_LABELS.get(tool) ?? humanizeToolName(tool);
+  if (!result) return FIGMA_TOOL_RUNNING_LABELS.get(tool) ?? base;
+  if (result.isError) return `${base} issue`;
+  return base;
+}
+
+const FIGMA_TOOL_LABELS = new Map<string, string>([
+  ['search_design_system', 'Searched design system'],
+  ['get_libraries', 'Read Figma libraries'],
+  ['create_new_file', 'Created Figma file'],
+  ['use_figma', 'Updated Figma canvas'],
+  ['get_metadata', 'Checked Figma metadata'],
+  ['get_screenshot', 'Checked Figma screenshot'],
+  ['get_variable_defs', 'Checked Figma variables'],
+  ['get_design_context', 'Read Figma design context'],
+  ['get_context_for_code_connect', 'Read Code Connect context'],
+]);
+
+const FIGMA_TOOL_RUNNING_LABELS = new Map<string, string>([
+  ['search_design_system', 'Searching design system'],
+  ['get_libraries', 'Reading Figma libraries'],
+  ['create_new_file', 'Creating Figma file'],
+  ['use_figma', 'Updating Figma canvas'],
+  ['get_metadata', 'Checking Figma metadata'],
+  ['get_screenshot', 'Checking Figma screenshot'],
+  ['get_variable_defs', 'Checking Figma variables'],
+  ['get_design_context', 'Reading Figma design context'],
+  ['get_context_for_code_connect', 'Reading Code Connect context'],
+]);
+
+function figmaProgressDetails(tool: string, args: Record<string, unknown>): string[] {
+  const details: string[] = [];
+  const query = stringArg(args, 'query');
+  const fileName = stringArg(args, 'fileName');
+  const fileKey = stringArg(args, 'fileKey');
+  const nodeId = stringArg(args, 'nodeId');
+  const pageName = stringArg(args, 'pageName');
+  const frameName = stringArg(args, 'frameName');
+
+  if (tool === 'search_design_system' && query) details.push(`query: ${query}`);
+  if (tool === 'create_new_file' && fileName) details.push(fileName);
+  if (pageName) details.push(`page: ${pageName}`);
+  if (frameName) details.push(`frame: ${frameName}`);
+  if (nodeId) details.push(`node: ${nodeId}`);
+  if (fileKey) details.push(`file: ${shortenMiddle(fileKey, 18)}`);
+  return details.slice(0, 3);
+}
+
+function stringArg(args: Record<string, unknown>, key: string): string | null {
+  const value = args[key];
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
 function GenericCard({
   name,
   input,
@@ -324,4 +433,18 @@ function describeInput(input: unknown): string {
 function truncate(s: string, n: number): string {
   if (s.length <= n) return s;
   return s.slice(0, n - 1) + '…';
+}
+
+function shortenMiddle(value: string, maxLength: number): string {
+  if (value.length <= maxLength) return value;
+  const edge = Math.max(3, Math.floor((maxLength - 1) / 2));
+  return `${value.slice(0, edge)}…${value.slice(-edge)}`;
+}
+
+function humanizeToolName(tool: string): string {
+  return tool
+    .split(/[_\s-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
 }

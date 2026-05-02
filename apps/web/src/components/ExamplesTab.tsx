@@ -153,7 +153,14 @@ export function ExamplesTab({ skills, onUsePrompt }: Props) {
   }, [skills, surfaceFilter]);
 
   const surfaceCounts = useMemo(() => {
-    const counts: Record<SurfaceFilter, number> = { all: skills.length, web: 0, image: 0, video: 0, audio: 0 };
+    const counts: Record<SurfaceFilter, number> = {
+      all: skills.length,
+      web: 0,
+      figma: 0,
+      image: 0,
+      video: 0,
+      audio: 0,
+    };
     for (const s of skills) counts[surfaceOf(s)]++;
     return counts;
   }, [skills]);

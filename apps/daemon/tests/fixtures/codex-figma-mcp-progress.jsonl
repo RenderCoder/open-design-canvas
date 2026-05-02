@@ -1,0 +1,16 @@
+{"type":"thread.started","thread_id":"thread-figma-fixture"}
+{"type":"turn.started"}
+{"type":"item.started","item":{"id":"mcp-search","type":"mcp_tool_call","server":"mcp__figma","tool":"search_design_system","arguments":{"fileKey":"demo-file","query":"button primary"}}}
+{"type":"item.completed","item":{"id":"mcp-search","type":"mcp_tool_call","server":"mcp__figma","tool":"search_design_system","arguments":{"fileKey":"demo-file","query":"button primary"},"result":{"matches":[{"name":"Button / Primary","library":"Base"}]},"status":"completed"}}
+{"type":"item.started","item":{"id":"mcp-write","type":"mcp_tool_call","server":"mcp__figma","tool":"use_figma","arguments":{"fileKey":"demo-file","code":"await figma.loadFontAsync({family:'Inter',style:'Regular'});"}}}
+{"type":"item.completed","item":{"id":"mcp-write","type":"mcp_tool_call","server":"mcp__figma","tool":"use_figma","arguments":{"fileKey":"demo-file","code":"await figma.loadFontAsync({family:'Inter',style:'Regular'});"},"result":{"created":[{"type":"FRAME","name":"Landing / Desktop / 1440","nodeId":"1:2"}]},"status":"completed"}}
+{"type":"item.started","item":{"id":"mcp-metadata","type":"mcp_tool_call","server":"mcp__figma","tool":"get_metadata","arguments":{"fileKey":"demo-file","nodeId":"1:2"}}}
+{"type":"item.completed","item":{"id":"mcp-metadata","type":"mcp_tool_call","server":"mcp__figma","tool":"get_metadata","arguments":{"fileKey":"demo-file","nodeId":"1:2"},"result":{"nodes":[{"id":"1:2","name":"Landing / Desktop / 1440"}]},"status":"completed"}}
+{"type":"item.started","item":{"id":"mcp-screenshot","type":"mcp_tool_call","server":"mcp__figma","tool":"get_screenshot","arguments":{"fileKey":"demo-file","nodeId":"1:2"}}}
+{"type":"item.completed","item":{"id":"mcp-screenshot","type":"mcp_tool_call","server":"mcp__figma","tool":"get_screenshot","arguments":{"fileKey":"demo-file","nodeId":"1:2"},"result":{"url":"https://example.invalid/screenshot.png"},"status":"completed"}}
+{"type":"item.started","item":{"id":"mcp-vars","type":"mcp_tool_call","server":"mcp__figma","tool":"get_variable_defs","arguments":{"fileKey":"demo-file","nodeId":"1:2"}}}
+{"type":"item.completed","item":{"id":"mcp-vars","type":"mcp_tool_call","server":"mcp__figma","tool":"get_variable_defs","arguments":{"fileKey":"demo-file","nodeId":"1:2"},"result":{"color/bg/default":"#ffffff"},"status":"completed"}}
+{"type":"item.started","item":{"id":"mcp-error","type":"mcp_tool_call","server":"mcp__figma","tool":"get_screenshot","arguments":{"fileKey":"demo-file","nodeId":"missing-node"}}}
+{"type":"item.completed","item":{"id":"mcp-error","type":"mcp_tool_call","server":"mcp__figma","tool":"get_screenshot","arguments":{"fileKey":"demo-file","nodeId":"missing-node"},"error":"Node missing-node was not found","status":"failed"}}
+{"type":"codex.future_event","payload":{"kept":"raw"}}
+malformed-jsonl

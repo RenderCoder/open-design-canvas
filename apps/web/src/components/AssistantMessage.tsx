@@ -11,6 +11,7 @@ import type { Dict } from '../i18n/types';
 import { agentDisplayName } from '../utils/agentLabels';
 import { exactDateTime, messageTime, relativeTimeLong } from '../utils/chatTime';
 import type { AgentEvent, ChatMessage, ProjectFile } from '../types';
+import { FigmaResultCard } from './FigmaResultCard';
 
 type TranslateFn = (key: keyof Dict, vars?: Record<string, string | number>) => string;
 
@@ -111,6 +112,7 @@ export function AssistantMessage({
             );
           }
           if (b.kind === 'status') return <StatusPill key={i} label={b.label} detail={b.detail} />;
+          if (b.kind === 'figma-result') return <FigmaResultCard key={i} result={b.result} />;
           return null;
         })}
         {!streaming && produced.length > 0 && projectId ? (
@@ -659,7 +661,8 @@ type Block =
   | { kind: 'text'; text: string }
   | { kind: 'thinking'; text: string }
   | { kind: 'tool-group'; items: ToolItem[] }
-  | { kind: 'status'; label: string; detail?: string | undefined };
+  | { kind: 'status'; label: string; detail?: string | undefined }
+  | { kind: 'figma-result'; result: Extract<AgentEvent, { kind: 'figma_result' }>['result'] };
 
 /**
  * Walk the event stream and build the rendering layout list. We additionally
@@ -703,6 +706,10 @@ function buildBlocks(events: AgentEvent[]): Block[] {
       continue;
     }
     if (ev.kind === 'tool_result') continue;
+    if (ev.kind === 'figma_result') {
+      out.push({ kind: 'figma-result', result: ev.result });
+      continue;
+    }
     if (ev.kind === 'status') {
       if (ev.label === 'streaming' || ev.label === 'starting' || ev.label === 'requesting' || ev.label === 'thinking') continue;
       const last = out[out.length - 1];

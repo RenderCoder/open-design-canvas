@@ -214,6 +214,31 @@ export interface Dict {
   'newproj.promptTemplateBodyLabel': string;
   'newproj.promptTemplateOptimizeHint': string;
   'newproj.promptTemplateBodyEmpty': string;
+  'newproj.figmaTitle': string;
+  'newproj.figmaTargetLabel': string;
+  'newproj.figmaTargetHelp': string;
+  'newproj.figmaMcpDocs': string;
+  'newproj.figmaModeExistingFile': string;
+  'newproj.figmaModeExistingFileHint': string;
+  'newproj.figmaModeSelection': string;
+  'newproj.figmaModeSelectionHint': string;
+  'newproj.figmaModeNewFile': string;
+  'newproj.figmaModeNewFileHint': string;
+  'newproj.figmaUrlLabel': string;
+  'newproj.figmaUrlPlaceholder': string;
+  'newproj.figmaUrlInvalid': string;
+  'newproj.figmaNodeLabel': string;
+  'newproj.figmaNodePlaceholder': string;
+  'newproj.figmaPageLabel': string;
+  'newproj.figmaPagePlaceholder': string;
+  'newproj.figmaFrameLabel': string;
+  'newproj.figmaFramePlaceholder': string;
+  'newproj.figmaPlanKeyLabel': string;
+  'newproj.figmaPlanKeyPlaceholder': string;
+  'newproj.figmaDesignSystemLabel': string;
+  'newproj.figmaDesignSystemNone': string;
+  'newproj.figmaPreferReuse': string;
+  'newproj.figmaAllowPrimitives': string;
 
   // Prompt templates
   'promptTemplates.searchPlaceholder': string;
@@ -369,6 +394,11 @@ export interface Dict {
   'chat.cliSettingsAria': string;
   'chat.attachTitle': string;
   'chat.attachAria': string;
+  'chat.figmaTargetTitle': string;
+  'chat.figmaTarget': string;
+  'chat.figmaTargetUnset': string;
+  'chat.figmaTargetExisting': string;
+  'chat.figmaTargetNewFile': string;
   'chat.importTitle': string;
   'chat.importLabel': string;
   'chat.importComingSoon': string;

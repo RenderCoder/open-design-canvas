@@ -1,7 +1,12 @@
 // @ts-nocheck
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import { createJsonEventStreamHandler } from '../src/json-event-stream.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 test('opencode json stream emits text and usage events', () => {
   const events = [];
@@ -260,6 +265,158 @@ test('codex json stream emits command execution tool events', () => {
       content: 'hello-from-codex\n',
       isError: false,
     },
+  ]);
+});
+
+test('codex json stream extracts MCP, plan, file, web, reasoning, and error events from fixture', () => {
+  const events = [];
+  const handler = createJsonEventStreamHandler('codex', (event) => events.push(event));
+  const fixture = readFileSync(path.join(__dirname, 'fixtures/codex-mcp-events.jsonl'), 'utf8');
+
+  handler.feed(fixture.slice(0, 117));
+  handler.feed(fixture.slice(117));
+  handler.flush();
+
+  assert.deepEqual(events, [
+    { type: 'status', label: 'initializing' },
+    { type: 'status', label: 'running' },
+    { type: 'thinking_delta', delta: 'Checking the Figma target before writing.' },
+    {
+      type: 'tool_use',
+      id: 'mcp-1',
+      name: 'mcp__figma.search_design_system',
+      input: {
+        kind: 'mcp_tool_call',
+        server: 'mcp__figma',
+        tool: 'search_design_system',
+        status: undefined,
+        args: { fileKey: 'demo-file', query: 'button' },
+        argsSummary: '{"fileKey":"demo-file","query":"button"}',
+        order: 1,
+      },
+    },
+    {
+      type: 'tool_result',
+      toolUseId: 'mcp-1',
+      content: '{"matches":[{"name":"Button / Primary"}]}',
+      isError: false,
+    },
+    {
+      type: 'tool_use',
+      id: 'plan-1',
+      name: 'PlanUpdate',
+      input: {
+        items: [
+          { text: 'Search design system', completed: true },
+          { text: 'Write canvas', completed: false },
+        ],
+        status: 'in_progress',
+      },
+    },
+    { type: 'tool_result', toolUseId: 'plan-1', content: '2 item(s)', isError: false },
+    {
+      type: 'tool_use',
+      id: 'file-1',
+      name: 'FileChange',
+      input: {
+        changes: [{ path: '/workspace/apps/daemon/src/json-event-stream.ts', kind: 'update' }],
+        status: 'completed',
+      },
+    },
+    {
+      type: 'tool_result',
+      toolUseId: 'file-1',
+      content: '[{"path":"/workspace/apps/daemon/src/json-event-stream.ts","kind":"update"}]',
+      isError: false,
+    },
+    {
+      type: 'tool_use',
+      id: 'web-1',
+      name: 'WebSearch',
+      input: { query: 'Figma MCP use_figma' },
+    },
+    {
+      type: 'tool_result',
+      toolUseId: 'web-1',
+      content: 'Official docs found.',
+      isError: false,
+    },
+    {
+      type: 'status',
+      label: 'error',
+      detail: 'Figma MCP authentication missing',
+    },
+    {
+      type: 'raw',
+      line: '{"type":"codex.future_event","payload":{"kept":"raw"}}',
+    },
+    { type: 'raw', line: 'not-json' },
+  ]);
+});
+
+test('codex json stream extracts Figma MCP progress tools, failures, partial chunks, and malformed lines', () => {
+  const events = [];
+  const handler = createJsonEventStreamHandler('codex', (event) => events.push(event));
+  const fixture = readFileSync(
+    path.join(__dirname, 'fixtures/codex-figma-mcp-progress.jsonl'),
+    'utf8',
+  );
+
+  for (let offset = 0; offset < fixture.length; offset += 31) {
+    handler.feed(fixture.slice(offset, offset + 31));
+  }
+  handler.flush();
+
+  const toolUses = events.filter((event) => event.type === 'tool_use');
+  assert.deepEqual(
+    toolUses.map((event) => event.name),
+    [
+      'mcp__figma.search_design_system',
+      'mcp__figma.use_figma',
+      'mcp__figma.get_metadata',
+      'mcp__figma.get_screenshot',
+      'mcp__figma.get_variable_defs',
+      'mcp__figma.get_screenshot',
+    ],
+  );
+
+  assert.deepEqual(
+    toolUses.map((event) => event.input.tool),
+    [
+      'search_design_system',
+      'use_figma',
+      'get_metadata',
+      'get_screenshot',
+      'get_variable_defs',
+      'get_screenshot',
+    ],
+  );
+
+  assert.deepEqual(
+    toolUses.map((event) => event.input.order),
+    [1, 2, 3, 4, 5, 6],
+  );
+
+  const failedResult = events.find(
+    (event) => event.type === 'tool_result' && event.toolUseId === 'mcp-error',
+  );
+  assert.deepEqual(failedResult, {
+    type: 'tool_result',
+    toolUseId: 'mcp-error',
+    content: 'Node missing-node was not found',
+    isError: true,
+  });
+
+  assert.deepEqual(events.slice(0, 2), [
+    { type: 'status', label: 'initializing' },
+    { type: 'status', label: 'running' },
+  ]);
+  assert.deepEqual(events.slice(-2), [
+    {
+      type: 'raw',
+      line: '{"type":"codex.future_event","payload":{"kept":"raw"}}',
+    },
+    { type: 'raw', line: 'malformed-jsonl' },
   ]);
 });
 

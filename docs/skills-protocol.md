@@ -104,6 +104,9 @@ od:
 | `od.preview.type` | picking the right iframe renderer |
 | `od.design_system.requires` | whether to inject `DESIGN.md` |
 | `od.design_system.sections` | pruning the injected DESIGN.md to relevant sections only (token savings) |
+| `od.figma.requires_mcp` | marks a Figma-native skill as requiring Figma MCP canvas access |
+| `od.figma.output_kind` | describes the Figma-native output contract, for example `native-canvas` or `critique-report` |
+| `od.figma.validation` | declares expected metadata, screenshot, and variable definition checks |
 | `od.craft.requires` | which brand-agnostic `craft/<slug>.md` references to inject (e.g. `typography`, `color`, `anti-ai-slop`); injected between DESIGN.md and the skill body |
 | `od.inputs` | rendering a typed form in the sidebar instead of only free-text |
 | `od.parameters` | rendering live sliders that re-prompt on change |
@@ -121,6 +124,33 @@ Defaults:
 - `inputs`, `parameters`: none (free-text prompt only)
 
 The goal: **zero-config compatibility** for existing Claude Code skills.
+
+### 2.3 Figma-native skill metadata
+
+Figma-native skills use the same `od:` frontmatter block as existing skills, with additive metadata:
+
+```yaml
+od:
+  mode: figma
+  surface: figma
+  platform: desktop
+  scenario: design
+  preview:
+    type: figma-canvas
+  figma:
+    requires_mcp: true
+    requires_full_seat: true
+    default_editor: design
+    output_kind: native-canvas
+    supports_existing_file: true
+    supports_create_new_file: true
+    validation:
+      metadata: true
+      screenshot: true
+      variable_defs: true
+```
+
+The registry preserves these fields in the skill listing so UI and prompt composition can distinguish native Figma canvas work from HTML artifacts. Non-Figma skills do not need an `od.figma` block.
 
 ## 3. Skill discovery & precedence
 

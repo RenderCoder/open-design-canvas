@@ -10,6 +10,9 @@ import type {
   DeployProjectFileResponse,
   DesignSystemDetail,
   DesignSystemSummary,
+  FigmaOutputSettings,
+  FigmaTarget,
+  FigmaTargetMode,
   MediaAspect,
   ProjectDeploymentsResponse,
   PersistedAgentEvent,
@@ -84,7 +87,7 @@ export interface AgentModelOption {
   label: string;
 }
 
-export type Surface = 'web' | 'image' | 'video' | 'audio';
+export type Surface = 'web' | 'figma' | 'image' | 'video' | 'audio';
 
 export interface PromptTemplateSource {
   repo: string;
@@ -121,6 +124,9 @@ export type {
   DeployProjectFileResponse,
   DesignSystemDetail,
   DesignSystemSummary,
+  FigmaOutputSettings,
+  FigmaTarget,
+  FigmaTargetMode,
   MediaAspect,
   ProjectDeploymentsResponse,
   Project,

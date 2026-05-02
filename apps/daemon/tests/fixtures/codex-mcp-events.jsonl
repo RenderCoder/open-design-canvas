@@ -1,0 +1,13 @@
+{"type":"thread.started","thread_id":"thread-fixture"}
+{"type":"turn.started"}
+{"type":"item.completed","item":{"id":"reason-1","type":"reasoning","text":"Checking the Figma target before writing."}}
+{"type":"item.started","item":{"id":"mcp-1","type":"mcp_tool_call","server":"mcp__figma","tool":"search_design_system","arguments":{"fileKey":"demo-file","query":"button"}}}
+{"type":"item.completed","item":{"id":"mcp-1","type":"mcp_tool_call","server":"mcp__figma","tool":"search_design_system","arguments":{"fileKey":"demo-file","query":"button"},"result":{"matches":[{"name":"Button / Primary"}]},"status":"completed"}}
+{"type":"item.started","item":{"id":"plan-1","type":"todo_list","items":[{"text":"Search design system","completed":true},{"text":"Write canvas","completed":false}],"status":"in_progress"}}
+{"type":"item.completed","item":{"id":"plan-1","type":"todo_list","items":[{"text":"Search design system","completed":true},{"text":"Write canvas","completed":true}],"status":"completed"}}
+{"type":"item.completed","item":{"id":"file-1","type":"file_change","changes":[{"path":"/workspace/apps/daemon/src/json-event-stream.ts","kind":"update"}],"status":"completed"}}
+{"type":"item.started","item":{"id":"web-1","type":"web_search","query":"Figma MCP use_figma"}}
+{"type":"item.completed","item":{"id":"web-1","type":"web_search","query":"Figma MCP use_figma","result":"Official docs found.","status":"completed"}}
+{"type":"error","message":"Figma MCP authentication missing"}
+{"type":"codex.future_event","payload":{"kept":"raw"}}
+not-json

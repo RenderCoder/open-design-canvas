@@ -191,6 +191,31 @@ describe('composeSystemPrompt — metadata.promptTemplate', () => {
 });
 
 describe('composeSystemPrompt — figma-native directive', () => {
+  it('adds compact Figma-native discovery questions without removing the default discovery form', () => {
+    const out = composeSystemPrompt({
+      skillMode: 'figma',
+      skillName: 'figma-native-screen',
+      skillBody: 'Create one native Figma screen.',
+    });
+
+    expect(out).toContain('Quick brief — 30 seconds');
+    expect(out).toContain('Figma canvas brief — 30 seconds');
+    expect(out).toContain('"id": "figma_target"');
+    expect(out).toContain('"label": "Figma target"');
+    expect(out).toContain('Use existing Figma file URL');
+    expect(out).toContain('Use existing selection URL / node');
+    expect(out).toContain('Create a new Figma file');
+    expect(out).toContain('"id": "surface"');
+    expect(out).toContain('"id": "screen_count"');
+    expect(out).toContain('"id": "design_system"');
+    expect(out).toContain('Search and reuse components/variables first');
+    expect(out).toContain('"id": "validation"');
+    expect(out).toContain('Metadata check');
+    expect(out).toContain('Screenshot check');
+    expect(out).toContain('Variable/style check');
+    expect(out).toContain('Do not add extra slow preflight questions about Figma auth');
+  });
+
   it('injects the Figma-native MCP canvas SOP for figma skills', () => {
     const out = composeSystemPrompt({
       skillMode: 'figma',

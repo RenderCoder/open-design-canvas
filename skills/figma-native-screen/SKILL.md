@@ -33,7 +33,7 @@ od:
 
 ## Deliverable
 
-A real editable Figma-native screen or composed view. Not HTML. Not screenshot-only.
+A single real editable Figma-native product screen or composed view. Not HTML. Not screenshot-only.
 
 ## Inputs to resolve
 
@@ -45,14 +45,15 @@ A real editable Figma-native screen or composed view. Not HTML. Not screenshot-o
 
 ## Workflow
 
-1. Ask discovery questions unless the user explicitly says to skip.
-2. Resolve Figma target.
-3. Search design system for relevant components, variables and styles.
-4. Plan sections and component reuse.
-5. Use `use_figma` to write native canvas.
-6. Validate with metadata, screenshot and variable defs.
-7. Run canvas lint.
-8. Return structured result report.
+1. Read `references/figma-mcp-contract.md`, `references/layout-patterns.md`, `references/canvas-lint.md`, and `references/result-report.md`.
+2. Ask discovery questions unless the user explicitly says to skip.
+3. Resolve Figma target.
+4. Search design system for relevant components, variables and styles.
+5. Plan one screen, its sections, and component reuse.
+6. Use `use_figma` to write native canvas.
+7. Validate with metadata, screenshot and variable defs.
+8. Run canvas lint.
+9. Return structured result report.
 
 ## Must not
 

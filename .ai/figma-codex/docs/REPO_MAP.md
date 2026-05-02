@@ -140,8 +140,8 @@ Important route clusters in `apps/daemon/src/server.ts`:
 
 Current Figma-native gap:
 
-- `apps/daemon/src/agents.ts` still builds Codex as `codex exec --json --skip-git-repo-check --full-auto -c sandbox_workspace_write.network_access=true ... -`.
-- `.ai/figma-codex/docs/OPEN_DESIGN_PATCH_GUIDE.md` says the target is `codex exec --json --sandbox workspace-write` and not `--full-auto`; this is already tracked by task `C20`.
+- `apps/daemon/src/agents.ts` builds Codex as `codex exec --json --skip-git-repo-check --sandbox workspace-write -c approval_policy="never" -c sandbox_workspace_write.network_access=true ... -`.
+- `.ai/figma-codex/scripts/codex-work-next.sh` and `codex-bootstrap.sh` also use `codex exec --sandbox workspace-write -c approval_policy="never" --json ...`.
 - `apps/daemon/src/json-event-stream.ts` parses Codex status, agent messages, usage, and command executions only. It does not yet parse MCP tool calls, plan updates, file changes, or Figma progress.
 
 ### `apps/desktop`
@@ -335,7 +335,8 @@ Codex adapter today:
 - command starts with `exec`
 - uses `--json`
 - uses `--skip-git-repo-check`
-- uses `--full-auto`
+- uses `--sandbox workspace-write`
+- configures `approval_policy="never"`
 - configures `sandbox_workspace_write.network_access=true`
 - optionally disables plugins with `OD_CODEX_DISABLE_PLUGINS=1`
 - passes `-C <project cwd>`
@@ -470,8 +471,6 @@ CI/release notes:
 
 High priority:
 
-- Codex adapter uses `--full-auto` despite the Figma/Codex upgrade docs calling
-  for `--sandbox workspace-write`; this is in scope for `C20`, not A00.
 - `figma` mode/surface exists in shipped skills but is not part of the typed
   registry contract or UI create flow.
 - Two prompt composer copies exist. Figma-native prompt changes must be applied

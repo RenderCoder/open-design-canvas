@@ -17,21 +17,25 @@ afterEach(() => {
   }
 });
 
-test('codex args disable plugins when OD_CODEX_DISABLE_PLUGINS is 1', () => {
+test('codex args use workspace-write sandbox and disable plugins when OD_CODEX_DISABLE_PLUGINS is 1', () => {
   process.env.OD_CODEX_DISABLE_PLUGINS = '1';
 
   const args = codex.buildArgs('', [], [], {}, { cwd: '/tmp/od-project' });
 
-  assert.deepEqual(args.slice(0, 8), [
+  assert.deepEqual(args.slice(0, 11), [
     'exec',
     '--json',
     '--skip-git-repo-check',
-    '--full-auto',
+    '--sandbox',
+    'workspace-write',
+    '-c',
+    'approval_policy="never"',
     '-c',
     'sandbox_workspace_write.network_access=true',
     '--disable',
     'plugins',
   ]);
+  assert.equal(args.includes('--full-auto'), false);
   assert.equal(args.at(-1), '-');
 });
 

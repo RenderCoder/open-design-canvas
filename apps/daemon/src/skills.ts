@@ -44,6 +44,7 @@ export async function listSkills(skillsRoot) {
         scenario: normalizeScenario(data.od?.scenario, body, data.description),
         previewType: data.od?.preview?.type || "html",
         designSystemRequired: data.od?.design_system?.requires ?? true,
+        figma: normalizeFigmaMetadata(data.od?.figma),
         defaultFor: normalizeDefaultFor(data.od?.default_for),
         upstream:
           typeof data.od?.upstream === "string" ? data.od.upstream : null,
@@ -177,6 +178,7 @@ function derivePrompt(data) {
 
 function inferMode(body, description) {
   const hay = `${description ?? ""}\n${body ?? ""}`.toLowerCase();
+  if (/\bfigma\b|figma-native|figma native/.test(hay)) return "figma";
   if (/\bimage|poster|illustration|photography|图片|海报|插画/.test(hay)) return "image";
   if (/\bvideo|motion|shortform|animation|视频|动效|短片/.test(hay)) return "video";
   if (/\baudio|music|jingle|tts|sound|音频|音乐|配音|音效/.test(hay)) return "audio";
@@ -187,12 +189,13 @@ function inferMode(body, description) {
   return "prototype";
 }
 
-const KNOWN_SURFACES = new Set(["web", "image", "video", "audio"]);
+const KNOWN_SURFACES = new Set(["web", "figma", "image", "video", "audio"]);
 function normalizeSurface(value, mode) {
   if (typeof value === "string") {
     const v = value.trim().toLowerCase();
     if (KNOWN_SURFACES.has(v)) return v;
   }
+  if (mode === "figma") return "figma";
   if (mode === "image" || mode === "video" || mode === "audio") return mode;
   return "web";
 }
@@ -201,11 +204,48 @@ function normalizeSurface(value, mode) {
 // Examples gallery. Falls back to autodetecting "mobile" from descriptions
 // so legacy skills sort under the right pill without authoring changes.
 function normalizePlatform(value, mode, body, description) {
-  if (value === "desktop" || value === "mobile") return value;
-  if (mode !== "prototype") return null;
+  if (value === "desktop" || value === "mobile" || value === "tablet" || value === "responsive") return value;
+  if (mode !== "prototype" && mode !== "figma") return null;
   const hay = `${description ?? ""}\n${body ?? ""}`.toLowerCase();
   if (/mobile|phone|ios|android|手机|移动端/.test(hay)) return "mobile";
   return "desktop";
+}
+
+function normalizeFigmaMetadata(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const validation =
+    value.validation && typeof value.validation === "object" && !Array.isArray(value.validation)
+      ? {
+          metadata: value.validation.metadata === true,
+          screenshot: value.validation.screenshot === true,
+          variableDefs:
+            value.validation.variable_defs === true ||
+            value.validation.variableDefs === true,
+        }
+      : null;
+
+  return {
+    requiresMcp: value.requires_mcp === true || value.requiresMcp === true,
+    requiresFullSeat:
+      value.requires_full_seat === true || value.requiresFullSeat === true,
+    defaultEditor:
+      value.default_editor === "design" || value.defaultEditor === "design"
+        ? "design"
+        : value.default_editor === "figjam" || value.defaultEditor === "figjam"
+          ? "figjam"
+          : null,
+    outputKind:
+      typeof value.output_kind === "string"
+        ? value.output_kind
+        : typeof value.outputKind === "string"
+          ? value.outputKind
+          : null,
+    supportsExistingFile:
+      value.supports_existing_file === true || value.supportsExistingFile === true,
+    supportsCreateNewFile:
+      value.supports_create_new_file === true || value.supportsCreateNewFile === true,
+    validation,
+  };
 }
 
 // Normalise a scenario tag to a small fixed vocabulary so the filter pills

@@ -20,6 +20,96 @@ function stringifyContent(value) {
   }
 }
 
+function summarizeValue(value, maxLength = 240) {
+  const text = stringifyContent(value).replace(/\s+/g, ' ').trim();
+  if (text.length <= maxLength) return text;
+  return `${text.slice(0, maxLength - 3)}...`;
+}
+
+function codexItemId(item, fallbackPrefix, state) {
+  if (typeof item?.id === 'string' && item.id.length > 0) return item.id;
+  state.codexSyntheticId += 1;
+  return `${fallbackPrefix}-${state.codexSyntheticId}`;
+}
+
+function codexToolNameForMcp(item) {
+  const server =
+    typeof item?.server === 'string'
+      ? item.server
+      : typeof item?.mcp_server === 'string'
+        ? item.mcp_server
+        : typeof item?.server_name === 'string'
+          ? item.server_name
+          : '';
+  const tool =
+    typeof item?.tool === 'string'
+      ? item.tool
+      : typeof item?.tool_name === 'string'
+        ? item.tool_name
+        : typeof item?.name === 'string'
+          ? item.name
+          : 'mcp_tool';
+  return server ? `${server}.${tool}` : tool;
+}
+
+function codexMcpInput(item, order) {
+  const server =
+    typeof item?.server === 'string'
+      ? item.server
+      : typeof item?.mcp_server === 'string'
+        ? item.mcp_server
+        : typeof item?.server_name === 'string'
+          ? item.server_name
+          : undefined;
+  const tool =
+    typeof item?.tool === 'string'
+      ? item.tool
+      : typeof item?.tool_name === 'string'
+        ? item.tool_name
+        : typeof item?.name === 'string'
+          ? item.name
+          : 'mcp_tool';
+  const args =
+    item?.arguments ??
+    item?.args ??
+    item?.input ??
+    item?.parameters ??
+    null;
+  return {
+    kind: 'mcp_tool_call',
+    server,
+    tool,
+    status: typeof item?.status === 'string' ? item.status : undefined,
+    args,
+    argsSummary: summarizeValue(args),
+    order,
+  };
+}
+
+function codexToolResultContent(item) {
+  return stringifyContent(
+    item?.result ??
+      item?.output ??
+      item?.content ??
+      item?.aggregated_output ??
+      item?.error ??
+      '',
+  );
+}
+
+function codexToolIsError(item) {
+  if (typeof item?.is_error === 'boolean') return item.is_error;
+  if (typeof item?.isError === 'boolean') return item.isError;
+  if (typeof item?.exit_code === 'number') return item.exit_code !== 0;
+  return item?.status === 'failed' || item?.status === 'error';
+}
+
+function emitCodexToolUse(state, onEvent, id, name, input) {
+  if (state.codexToolUses.has(id)) return;
+  state.codexToolUses.add(id);
+  onEvent({ type: 'tool_use', id, name, input });
+}
+
 function formatOpenCodeUsage(tokens) {
   if (!tokens || typeof tokens !== 'object') return null;
   const usage = {};
@@ -219,17 +309,40 @@ function handleCodexEvent(obj, onEvent, state) {
   if (obj.type === 'item.started' && obj.item && typeof obj.item === 'object') {
     const item = obj.item;
     if (item.type === 'command_execution' && typeof item.id === 'string') {
-      if (!state.codexToolUses.has(item.id)) {
-        state.codexToolUses.add(item.id);
-        onEvent({
-          type: 'tool_use',
-          id: item.id,
-          name: 'Bash',
-          input: {
-            command: typeof item.command === 'string' ? item.command : '',
-          },
-        });
-      }
+      emitCodexToolUse(state, onEvent, item.id, 'Bash', {
+        command: typeof item.command === 'string' ? item.command : '',
+      });
+      return true;
+    }
+    if (item.type === 'mcp_tool_call' || item.type === 'function_call' || item.type === 'tool_call') {
+      const id = codexItemId(item, 'codex-tool', state);
+      const order = state.codexToolUses.has(id)
+        ? state.codexEventOrder
+        : (state.codexEventOrder += 1);
+      emitCodexToolUse(state, onEvent, id, codexToolNameForMcp(item), codexMcpInput(item, order));
+      return true;
+    }
+    if (item.type === 'file_change' || item.type === 'file_changes') {
+      const id = codexItemId(item, 'codex-file-change', state);
+      emitCodexToolUse(state, onEvent, id, 'FileChange', {
+        changes: Array.isArray(item.changes) ? item.changes : [],
+        status: typeof item.status === 'string' ? item.status : undefined,
+      });
+      return true;
+    }
+    if (item.type === 'web_search') {
+      const id = codexItemId(item, 'codex-web-search', state);
+      emitCodexToolUse(state, onEvent, id, 'WebSearch', {
+        query: typeof item.query === 'string' ? item.query : '',
+      });
+      return true;
+    }
+    if (item.type === 'plan_update' || item.type === 'todo_list') {
+      const id = codexItemId(item, 'codex-plan-update', state);
+      emitCodexToolUse(state, onEvent, id, 'PlanUpdate', {
+        items: Array.isArray(item.items) ? item.items : [],
+        status: typeof item.status === 'string' ? item.status : undefined,
+      });
       return true;
     }
   }
@@ -237,22 +350,69 @@ function handleCodexEvent(obj, onEvent, state) {
   if (obj.type === 'item.completed' && obj.item && typeof obj.item === 'object') {
     const item = obj.item;
     if (item.type === 'command_execution' && typeof item.id === 'string') {
-      if (!state.codexToolUses.has(item.id)) {
-        state.codexToolUses.add(item.id);
-        onEvent({
-          type: 'tool_use',
-          id: item.id,
-          name: 'Bash',
-          input: {
-            command: typeof item.command === 'string' ? item.command : '',
-          },
-        });
-      }
+      emitCodexToolUse(state, onEvent, item.id, 'Bash', {
+        command: typeof item.command === 'string' ? item.command : '',
+      });
       onEvent({
         type: 'tool_result',
         toolUseId: item.id,
         content: stringifyContent(item.aggregated_output ?? ''),
         isError: typeof item.exit_code === 'number' ? item.exit_code !== 0 : item.status === 'failed',
+      });
+      return true;
+    }
+    if (item.type === 'mcp_tool_call' || item.type === 'function_call' || item.type === 'tool_call') {
+      const id = codexItemId(item, 'codex-tool', state);
+      const order = state.codexToolUses.has(id)
+        ? state.codexEventOrder
+        : (state.codexEventOrder += 1);
+      emitCodexToolUse(state, onEvent, id, codexToolNameForMcp(item), codexMcpInput(item, order));
+      onEvent({
+        type: 'tool_result',
+        toolUseId: id,
+        content: codexToolResultContent(item),
+        isError: codexToolIsError(item),
+      });
+      return true;
+    }
+    if (item.type === 'file_change' || item.type === 'file_changes') {
+      const id = codexItemId(item, 'codex-file-change', state);
+      emitCodexToolUse(state, onEvent, id, 'FileChange', {
+        changes: Array.isArray(item.changes) ? item.changes : [],
+        status: typeof item.status === 'string' ? item.status : undefined,
+      });
+      onEvent({
+        type: 'tool_result',
+        toolUseId: id,
+        content: summarizeValue(item.changes ?? item.status ?? ''),
+        isError: codexToolIsError(item),
+      });
+      return true;
+    }
+    if (item.type === 'web_search') {
+      const id = codexItemId(item, 'codex-web-search', state);
+      emitCodexToolUse(state, onEvent, id, 'WebSearch', {
+        query: typeof item.query === 'string' ? item.query : '',
+      });
+      onEvent({
+        type: 'tool_result',
+        toolUseId: id,
+        content: codexToolResultContent(item),
+        isError: codexToolIsError(item),
+      });
+      return true;
+    }
+    if (item.type === 'plan_update' || item.type === 'todo_list') {
+      const id = codexItemId(item, 'codex-plan-update', state);
+      emitCodexToolUse(state, onEvent, id, 'PlanUpdate', {
+        items: Array.isArray(item.items) ? item.items : [],
+        status: typeof item.status === 'string' ? item.status : undefined,
+      });
+      onEvent({
+        type: 'tool_result',
+        toolUseId: id,
+        content: `${Array.isArray(item.items) ? item.items.length : 0} item(s)`,
+        isError: false,
       });
       return true;
     }
@@ -270,6 +430,22 @@ function handleCodexEvent(obj, onEvent, state) {
     return true;
   }
 
+  if (obj.type === 'item.completed' && obj.item && typeof obj.item === 'object') {
+    const item = obj.item;
+    if (item.type === 'reasoning' || item.type === 'summary') {
+      const text =
+        typeof item.text === 'string'
+          ? item.text
+          : typeof item.summary === 'string'
+            ? item.summary
+            : stringifyContent(item.content);
+      if (text.length > 0) {
+        onEvent({ type: 'thinking_delta', delta: text });
+        return true;
+      }
+    }
+  }
+
   if (obj.type === 'turn.completed' && obj.usage && typeof obj.usage === 'object') {
     const usage = {};
     if (typeof obj.usage.input_tokens === 'number') usage.input_tokens = obj.usage.input_tokens;
@@ -278,6 +454,17 @@ function handleCodexEvent(obj, onEvent, state) {
       usage.cached_read_tokens = obj.usage.cached_input_tokens;
     }
     onEvent({ type: 'usage', usage });
+    return true;
+  }
+
+  if (obj.type === 'error') {
+    const message =
+      typeof obj.message === 'string'
+        ? obj.message
+        : typeof obj.error === 'string'
+          ? obj.error
+          : stringifyContent(obj.error || obj);
+    onEvent({ type: 'status', label: 'error', detail: message });
     return true;
   }
 
@@ -290,6 +477,8 @@ export function createJsonEventStreamHandler(kind, onEvent) {
     cursorTextSoFar: '',
     openCodeToolUses: new Set(),
     codexToolUses: new Set(),
+    codexEventOrder: 0,
+    codexSyntheticId: 0,
   };
 
   function handleLine(line) {

@@ -59,6 +59,40 @@ When the user opens a new project or sends a fresh design brief, your **very fir
 </question-form>
 \`\`\`
 
+For Figma-native projects (active skill mode is \`figma\` OR Project metadata says \`figmaOutputSettings.outputMode: figma-native\`), keep the same turn-1 speed but use this compact Figma discovery form instead of the HTML/artifact default:
+
+\`\`\`
+<question-form id="discovery" title="Figma canvas brief — 30 seconds">
+{
+  "description": "I'll lock the canvas target and validation path before using Figma MCP.",
+  "questions": [
+    { "id": "figma_target", "label": "Figma target", "type": "radio", "required": true,
+      "options": ["Use existing Figma file URL", "Use existing selection URL / node", "Create a new Figma file"] },
+    { "id": "surface", "label": "Canvas surface", "type": "radio", "required": true,
+      "options": ["Product screen", "Landing page", "Dashboard / tool UI", "Mobile flow", "Design critique / update", "Other — I'll describe"] },
+    { "id": "platform", "label": "Primary frame", "type": "radio",
+      "options": ["Desktop 1440", "Mobile iOS", "Mobile Android", "Tablet", "Responsive set", "Custom size"] },
+    { "id": "screen_count", "label": "Screen count / frames", "type": "text",
+      "placeholder": "e.g. 1 desktop screen, 3 mobile screens, desktop + mobile variant" },
+    { "id": "design_system", "label": "Design-system reuse", "type": "radio",
+      "options": ["Search and reuse components/variables first", "Use my active design system only", "Primitive fallback is okay if reported"] },
+    { "id": "brand", "label": "Brand context", "type": "radio",
+      "options": ["Pick a direction for me", "I have a brand spec — I'll share it", "Match a reference site / screenshot — I'll attach it"] },
+    { "id": "validation", "label": "Validation expectations", "type": "checkbox", "maxSelections": 3,
+      "options": ["Metadata check", "Screenshot check", "Variable/style check"] }
+  ]
+}
+</question-form>
+\`\`\`
+
+Figma discovery authoring rules:
+- Keep the Figma form under 7 questions. If the project metadata already includes a concrete Figma target or output setting, drop the matching question instead of re-asking it.
+- If the target is unknown, include exactly one \`figma_target\` question and capture whether the run should use an existing file URL, existing selection/node, or create a new file through Figma MCP.
+- Always lock \`surface\`, \`platform\`, \`screen_count\`, \`brand\`, \`design_system\`, and \`validation\` unless the brief or Project metadata already answers them.
+- Map \`design_system\` answers to output constraints: prefer design-system reuse by default; allow primitive fallback only when the user selects it or no component/variable/style exists, and report any fallback in the result.
+- Map \`validation\` answers to output constraints: metadata check, screenshot check, and variable/style check are the default for Figma-native work.
+- Do not add extra slow preflight questions about Figma auth. Missing MCP auth is handled during execution and reported as a blocker, not during discovery.
+
 Form authoring rules:
 - Body must be valid JSON. No comments. No trailing commas.
 - \`type\` is one of: \`radio\`, \`checkbox\`, \`select\`, \`text\`, \`textarea\`.

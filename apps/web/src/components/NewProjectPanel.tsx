@@ -27,6 +27,12 @@ import {
   VIDEO_MODELS,
 } from '../media/models';
 import { Icon } from './Icon';
+import {
+  defaultFigmaTargetDraft,
+  FigmaTargetFields,
+  normalizeFigmaTargetDraft,
+  type FigmaTargetDraft,
+} from './FigmaTargetFields';
 import { Skeleton } from './Loading';
 
 // Snapshot of a curated prompt template, captured at New Project time and
@@ -39,7 +45,15 @@ type PromptTemplatePick = {
 
 type TranslateFn = (key: keyof Dict, vars?: Record<string, string | number>) => string;
 
-export type CreateTab = 'prototype' | 'deck' | 'template' | 'image' | 'video' | 'audio' | 'other';
+export type CreateTab =
+  | 'prototype'
+  | 'deck'
+  | 'template'
+  | 'figma'
+  | 'image'
+  | 'video'
+  | 'audio'
+  | 'other';
 
 export interface CreateInput {
   name: string;
@@ -64,6 +78,7 @@ const TAB_LABEL_KEYS: Record<CreateTab, keyof Dict> = {
   prototype: 'newproj.tabPrototype',
   deck: 'newproj.tabDeck',
   template: 'newproj.tabTemplate',
+  figma: 'newproj.figmaTargetLabel',
   image: 'newproj.surfaceImage',
   video: 'newproj.surfaceVideo',
   audio: 'newproj.surfaceAudio',
@@ -112,6 +127,9 @@ export function NewProjectPanel({
   const [audioModel, setAudioModel] = useState(DEFAULT_AUDIO_MODEL.speech);
   const [audioDuration, setAudioDuration] = useState(10);
   const [voice, setVoice] = useState('');
+  const [figmaTarget, setFigmaTarget] = useState<FigmaTargetDraft>(() =>
+    defaultFigmaTargetDraft(),
+  );
   // Per-surface curated prompt template the user picked. Tracked
   // independently for image vs video so flipping tabs doesn't clobber the
   // other one's pick. The body is editable in-line and the edited copy is
@@ -131,6 +149,7 @@ export function NewProjectPanel({
     tab === 'prototype' ||
     tab === 'deck' ||
     tab === 'template' ||
+    tab === 'figma' ||
     tab === 'other';
 
   // When entering the template tab, snap to the first user-saved template
@@ -171,11 +190,27 @@ export function NewProjectPanel({
         ?? list[0]?.id
         ?? null;
     }
+    if (tab === 'figma') {
+      const list = skills.filter((s) => s.mode === 'figma' || s.surface === 'figma');
+      return list.find((s) => s.defaultFor.includes('figma'))?.id
+        ?? list[0]?.id
+        ?? null;
+    }
     return null;
   }, [tab, skills]);
+  const selectedSkill = useMemo(
+    () => skills.find((skill) => skill.id === skillIdForTab) ?? null,
+    [skills, skillIdForTab],
+  );
+  const showFigmaTarget =
+    tab === 'figma' ||
+    (showDesignSystemPicker &&
+      (selectedSkill?.mode === 'figma' || selectedSkill?.surface === 'figma'));
+  const figmaTargetValid =
+    !showFigmaTarget || normalizeFigmaTargetDraft(figmaTarget) !== null;
 
   const canCreate =
-    !loading && (tab !== 'template' || templateId != null);
+    !loading && (tab !== 'template' || templateId != null) && figmaTargetValid;
 
   function updateTabScrollState() {
     const el = tabsRef.current;
@@ -250,6 +285,7 @@ export function NewProjectPanel({
       voice,
       inspirationIds: inspirations,
       promptTemplate: promptTemplatePick,
+      figmaTarget: showFigmaTarget ? figmaTarget : null,
     });
     onCreate({
       name: name.trim() || autoName(tab, t),
@@ -418,6 +454,18 @@ export function NewProjectPanel({
             onAudioModel={setAudioModel}
             onAudioDuration={setAudioDuration}
             onVoice={setVoice}
+          />
+        ) : null}
+
+        {showFigmaTarget ? (
+          <FigmaTargetFields
+            value={figmaTarget}
+            onChange={setFigmaTarget}
+            designSystemTitle={
+              selectedDsIds[0]
+                ? designSystems.find((system) => system.id === selectedDsIds[0])?.title
+                : null
+            }
           />
         ) : null}
 
@@ -1632,20 +1680,28 @@ function buildMetadata(input: {
   voice: string;
   inspirationIds: string[];
   promptTemplate: PromptTemplatePick | null;
+  figmaTarget: FigmaTargetDraft | null;
 }): ProjectMetadata {
-  const kind: ProjectKind = input.tab;
+  const kind: ProjectKind = input.tab === 'figma' ? 'other' : input.tab;
   const inspirations = input.inspirationIds.length > 0
     ? { inspirationDesignSystemIds: input.inspirationIds }
     : {};
+  const figma = input.figmaTarget ? normalizeFigmaTargetDraft(input.figmaTarget) : null;
+  const figmaMetadata = figma
+    ? {
+        figmaTarget: figma.target,
+        figmaOutputSettings: figma.outputSettings,
+      }
+    : {};
   if (input.tab === 'prototype') {
-    return { kind, fidelity: input.fidelity, ...inspirations };
+    return { kind, fidelity: input.fidelity, ...inspirations, ...figmaMetadata };
   }
   if (input.tab === 'deck') {
-    return { kind, speakerNotes: input.speakerNotes, ...inspirations };
+    return { kind, speakerNotes: input.speakerNotes, ...inspirations, ...figmaMetadata };
   }
   if (input.tab === 'template') {
     if (input.templateId == null) {
-      return { kind, animations: input.animations, ...inspirations };
+      return { kind, animations: input.animations, ...inspirations, ...figmaMetadata };
     }
     const tpl = input.templates.find((x) => x.id === input.templateId);
     // The fallback label is consumed by the agent prompt rather than the
@@ -1656,6 +1712,7 @@ function buildMetadata(input: {
       templateId: input.templateId,
       templateLabel: tpl?.name ?? 'Saved template',
       ...inspirations,
+      ...figmaMetadata,
     };
   }
   if (input.tab === 'image') {
@@ -1666,6 +1723,7 @@ function buildMetadata(input: {
       imageStyle: input.imageStyle.trim() || undefined,
       ...buildPromptTemplateMetadata(input.promptTemplate),
       ...inspirations,
+      ...figmaMetadata,
     };
   }
   if (input.tab === 'video') {
@@ -1676,6 +1734,7 @@ function buildMetadata(input: {
       videoLength: input.videoLength,
       ...buildPromptTemplateMetadata(input.promptTemplate),
       ...inspirations,
+      ...figmaMetadata,
     };
   }
   if (input.tab === 'audio') {
@@ -1686,9 +1745,10 @@ function buildMetadata(input: {
       audioDuration: input.audioDuration,
       voice: input.voice.trim() || undefined,
       ...inspirations,
+      ...figmaMetadata,
     };
   }
-  return { kind: 'other', ...inspirations };
+  return { kind: 'other', ...inspirations, ...figmaMetadata };
 }
 
 function buildPromptTemplateMetadata(
@@ -1729,6 +1789,8 @@ function titleForTab(tab: CreateTab, t: TranslateFn): string {
       return t('newproj.titleDeck');
     case 'template':
       return t('newproj.titleTemplate');
+    case 'figma':
+      return t('newproj.figmaTitle');
     case 'image':
       return t('newproj.titleImage');
     case 'video':

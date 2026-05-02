@@ -3,7 +3,14 @@ import { useT } from '../i18n';
 import type { Dict } from '../i18n/types';
 import { projectRawUrl } from '../providers/registry';
 import type { TodoItem } from '../runtime/todos';
-import type { ChatAttachment, ChatMessage, Conversation, ProjectFile } from '../types';
+import type {
+  ChatAttachment,
+  ChatMessage,
+  Conversation,
+  FigmaOutputSettings,
+  FigmaTarget,
+  ProjectFile,
+} from '../types';
 import { dayKey, dayLabel, exactDateTime, messageTime, relativeTimeLong } from '../utils/chatTime';
 import { AssistantMessage } from './AssistantMessage';
 import { ChatComposer, type ChatComposerHandle } from './ChatComposer';
@@ -54,6 +61,14 @@ interface Props {
   onEnsureProject: () => Promise<string | null>;
   onSend: (prompt: string, attachments: ChatAttachment[]) => void;
   onStop: () => void;
+  figmaTarget?: FigmaTarget;
+  figmaOutputSettings?: FigmaOutputSettings;
+  onFigmaTargetChange?: (next: {
+    figmaTarget: FigmaTarget;
+    figmaOutputSettings: FigmaOutputSettings;
+  }) => void;
+  figmaDesignSystemTitle?: string | null;
+  figmaTargetEnabled?: boolean;
   // Click-to-open chain: passes a basename up to ProjectView, which sets
   // FileWorkspace's openRequest. Tool cards, attachment chips, and
   // produced-file chips all call this.
@@ -90,6 +105,11 @@ export function ChatPane({
   onEnsureProject,
   onSend,
   onStop,
+  figmaTarget,
+  figmaOutputSettings,
+  onFigmaTargetChange,
+  figmaDesignSystemTitle,
+  figmaTargetEnabled,
   onRequestOpenFile,
   initialDraft,
   onSubmitForm,
@@ -412,6 +432,11 @@ export function ChatPane({
             onEnsureProject={onEnsureProject}
             onSend={onSend}
             onStop={onStop}
+            figmaTarget={figmaTarget}
+            figmaOutputSettings={figmaOutputSettings}
+            onFigmaTargetChange={onFigmaTargetChange}
+            figmaDesignSystemTitle={figmaDesignSystemTitle}
+            figmaTargetEnabled={figmaTargetEnabled}
             onOpenSettings={onOpenSettings}
           />
         </>

@@ -60,9 +60,9 @@ const agentCapabilities = new Map();
 // Permission posture: the daemon spawns each CLI with cwd pinned to the
 // project folder (`.od/projects/<id>/`), and the web app has no terminal
 // to surface an interactive approve/deny prompt. So every agent runs with
-// its non-interactive/auto-approve switch on — otherwise Write/Edit hangs
-// or errors and the model has to hallucinate a permission button the UI
-// never shows.
+// a non-interactive permission posture where the CLI supports one — otherwise
+// Write/Edit hangs or errors and the model has to hallucinate a permission
+// button the UI never shows.
 
 const DEFAULT_MODEL_OPTION = { id: 'default', label: 'Default (CLI config)' };
 
@@ -204,7 +204,10 @@ export const AGENT_DEFS = [
         'exec',
         '--json',
         '--skip-git-repo-check',
-        '--full-auto',
+        '--sandbox',
+        'workspace-write',
+        '-c',
+        'approval_policy="never"',
         '-c',
         'sandbox_workspace_write.network_access=true',
       ];

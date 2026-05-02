@@ -8,7 +8,18 @@ import {
 import { useT } from '../i18n';
 import type { Dict } from '../i18n/types';
 import { projectRawUrl, uploadProjectFiles } from "../providers/registry";
-import type { ChatAttachment, ProjectFile } from "../types";
+import type {
+  ChatAttachment,
+  FigmaOutputSettings,
+  FigmaTarget,
+  ProjectFile,
+} from "../types";
+import {
+  defaultFigmaTargetDraft,
+  FigmaTargetFields,
+  normalizeFigmaTargetDraft,
+  type FigmaTargetDraft,
+} from './FigmaTargetFields';
 import { Icon } from "./Icon";
 
 type TranslateFn = (key: keyof Dict, vars?: Record<string, string | number>) => string;
@@ -24,6 +35,14 @@ interface Props {
   onEnsureProject: () => Promise<string | null>;
   onSend: (prompt: string, attachments: ChatAttachment[]) => void;
   onStop: () => void;
+  figmaTarget?: FigmaTarget;
+  figmaOutputSettings?: FigmaOutputSettings;
+  onFigmaTargetChange?: (next: {
+    figmaTarget: FigmaTarget;
+    figmaOutputSettings: FigmaOutputSettings;
+  }) => void;
+  figmaDesignSystemTitle?: string | null;
+  figmaTargetEnabled?: boolean;
   // Opens the global settings dialog (CLI / model / agent picker). The
   // composer's leading gear icon routes here so users can switch models
   // without leaving the chat.
@@ -56,6 +75,11 @@ export const ChatComposer = forwardRef<ChatComposerHandle, Props>(
       onEnsureProject,
       onSend,
       onStop,
+      figmaTarget,
+      figmaOutputSettings,
+      onFigmaTargetChange,
+      figmaDesignSystemTitle,
+      figmaTargetEnabled = false,
       onOpenSettings,
     },
     ref
@@ -71,6 +95,11 @@ export const ChatComposer = forwardRef<ChatComposerHandle, Props>(
     const [uploading, setUploading] = useState(false);
     const [uploadError, setUploadError] = useState<string | null>(null);
     const [importOpen, setImportOpen] = useState(false);
+    const [figmaOpen, setFigmaOpen] = useState(false);
+    const [figmaDraft, setFigmaDraft] = useState<FigmaTargetDraft>(() => ({
+      target: figmaTarget ?? defaultFigmaTargetDraft().target,
+      outputSettings: figmaOutputSettings ?? defaultFigmaTargetDraft().outputSettings,
+    }));
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
     const importMenuRef = useRef<HTMLDivElement | null>(null);
@@ -112,6 +141,13 @@ export const ChatComposer = forwardRef<ChatComposerHandle, Props>(
         document.removeEventListener("keydown", onKey);
       };
     }, [importOpen]);
+
+    useEffect(() => {
+      setFigmaDraft({
+        target: figmaTarget ?? defaultFigmaTargetDraft().target,
+        outputSettings: figmaOutputSettings ?? defaultFigmaTargetDraft().outputSettings,
+      });
+    }, [figmaTarget, figmaOutputSettings]);
 
     useImperativeHandle(
       ref,
@@ -246,6 +282,14 @@ export const ChatComposer = forwardRef<ChatComposerHandle, Props>(
       reset();
     }
 
+    const normalizedFigmaDraft = normalizeFigmaTargetDraft(figmaDraft);
+    const figmaSummary =
+      normalizedFigmaDraft?.target.mode === 'new-file'
+        ? t('chat.figmaTargetNewFile')
+        : normalizedFigmaDraft?.target.fileUrl
+          ? t('chat.figmaTargetExisting')
+          : t('chat.figmaTargetUnset');
+
     // The @-picker treats the project listing as path-shaped (path + size).
     // ProjectFile.path is optional, so fall back to .name for the legacy
     // flat shape — both ChatComposer and the old code paths see the same
@@ -339,6 +383,20 @@ export const ChatComposer = forwardRef<ChatComposerHandle, Props>(
                 <Icon name="attach" size={15} />
               )}
             </button>
+            {figmaTargetEnabled ? (
+              <button
+                type="button"
+                className={`composer-figma${figmaOpen ? ' active' : ''}`}
+                data-testid="chat-figma-target-trigger"
+                onClick={() => setFigmaOpen((value) => !value)}
+                aria-expanded={figmaOpen}
+                title={t('chat.figmaTargetTitle')}
+              >
+                <Icon name="grid" size={13} />
+                <span>{t('chat.figmaTarget')}</span>
+                <small>{figmaSummary}</small>
+              </button>
+            ) : null}
             <span className="composer-icon-divider" aria-hidden />
             <div className="composer-import-wrap">
               <button
@@ -397,6 +455,22 @@ export const ChatComposer = forwardRef<ChatComposerHandle, Props>(
             )}
           </div>
         </div>
+        {figmaTargetEnabled && figmaOpen ? (
+          <FigmaTargetFields
+            compact
+            value={figmaDraft}
+            onChange={(next) => {
+              setFigmaDraft(next);
+              const normalized = normalizeFigmaTargetDraft(next);
+              if (!normalized) return;
+              onFigmaTargetChange?.({
+                figmaTarget: normalized.target,
+                figmaOutputSettings: normalized.outputSettings,
+              });
+            }}
+            designSystemTitle={figmaDesignSystemTitle}
+          />
+        ) : null}
         {uploadError ? <span className="composer-hint">{uploadError}</span> : null}
         <span className="composer-hint">{t('chat.composerHint')}</span>
       </div>
