@@ -1,5 +1,13 @@
 # Canvas Lint Checklist
 
+Use this checklist to produce evidence-backed issues, not general design feedback.
+
+Severity mapping:
+
+- `P0` maps to `severity: "error"` and means the canvas is not acceptable without repair.
+- `P1` maps to `severity: "warning"` and means the canvas is usable but needs cleanup.
+- `P2` maps to `severity: "info"` and means polish or maintainability improvement.
+
 ## P0 — must pass
 
 - Output is editable Figma-native structure.
@@ -24,3 +32,5 @@
 - Dev handoff notes.
 - Alternative variants.
 - Token gaps filed for design system maintainers.
+
+Each issue should include the failing check, evidence source, affected node ID when known, and a concrete repair action.

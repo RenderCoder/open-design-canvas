@@ -3,7 +3,12 @@
 ```text
 Review this Figma-native output as a senior product designer and design-system maintainer.
 
-Use Figma MCP metadata/screenshot/variable information if available.
+Use Figma MCP metadata/screenshot/variable information. Prefer a focused frame or selection over a whole file. If one of these checks cannot run, mark the audit partial and explain the missing evidence.
+
+Required MCP checks:
+- `get_metadata` for frame tree, node names, dimensions, hierarchy, and Auto Layout signals.
+- `get_screenshot` for visual hierarchy, specificity, contrast, and state clarity.
+- `get_variable_defs` or equivalent inspection for variables/styles and hardcoded-value risk.
 
 Score 1-5:
 1. Design intent: does it match the brief, audience and tone?
@@ -23,7 +28,8 @@ Fail P0 if:
 
 Return:
 - score table
-- P0/P1/P2 issues
-- exact repair plan
+- P0/P1/P2 issues sorted by severity
+- exact repair plan with the `use_figma` cleanup action each issue needs
 - whether the agent should run another use_figma cleanup pass
+- final fenced `figma_native_result` JSON with `checks`, parser-compatible `issues`, `nextActions`, and `mcpEvents`
 ```
