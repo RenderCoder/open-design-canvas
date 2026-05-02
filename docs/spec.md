@@ -16,6 +16,8 @@ Other docs:
 - Skills protocol → [`skills-protocol.md`](skills-protocol.md)
 - Agent adapters → [`agent-adapters.md`](agent-adapters.md)
 - Modes → [`modes.md`](modes.md)
+- Figma-native ADR → [`adr/figma-native-mode.md`](adr/figma-native-mode.md)
+- Figma-native contracts → [`schemas/figma-native.md`](schemas/figma-native.md)
 - References & credits → [`references.md`](references.md)
 - Roadmap → [`roadmap.md`](roadmap.md)
 
