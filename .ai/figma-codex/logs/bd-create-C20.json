@@ -1,12 +1,12 @@
 {
-  "id": "open-design-canvas-bgh",
+  "id": "open-design-canvas-c6z",
   "title": "[Phase 2] 现代化 Codex adapter 执行参数",
   "description": "# [Phase 2] 现代化 Codex adapter 执行参数\n\n## Task key\n\n`C20`\n\n## Priority\n\n`0`\n\n## Dependencies\n\nA03\n\n## Desired outcome\n\nCodex adapter 不再依赖 --full-auto，优先 workspace-write sandbox 和 JSONL。\n\n## Why this matters\n\n这个任务是 Open Design → Figma-native 改造链路的一部分。它必须把长期上下文写入代码、文档或测试，而不是只在当前对话中解释。后续 Codex 会话会依赖 Beads 详情继续工作，因此本文件是执行契约。\n\n## Required reading before implementation\n\n- `AGENTS.md` and `AGENTS.figmacodex.append.md`\n- `README.FIGMA_CODEX_UPGRADE.md`\n- `.ai/figma-codex/docs/RESEARCH_BRIEF.md`\n- `.ai/figma-codex/docs/ARCHITECTURE.md`\n- `.ai/figma-codex/docs/IMPLEMENTATION_GUIDE.md`\n- `.ai/figma-codex/docs/OPEN_DESIGN_PATCH_GUIDE.md`\n- `.ai/figma-codex/docs/QA_CHECKLIST.md`\n\n## Repo context anchors to inspect\n\n- agent adapter code found in A00\n- Codex CLI invocation path\n- `.codex/config.example.toml`\n- `.ai/figma-codex/scripts/codex-work-next.sh`\n\n## Scope notes\n\n先找到真实 adapter，再小步改。\n\n## Implementation plan\n\n- Find current Codex adapter invocation and flags.\n- Prefer `codex exec --json` and `--sandbox workspace-write`; do not rely on deprecated `--full-auto`.\n- Add `--cd` or run from repo root as appropriate.\n- Expose MCP/server requirements in docs, not hardcoded secrets.\n\n## Guardrails\n\n- 先运行 `bd show \u003cid\u003e --long`，完整阅读本任务，再运行 `bd update \u003cid\u003e --claim`。\n- 不要只根据文件名猜测；必须用 `rg` / `find` / `sed` / `cat package.json` 检查当前 fork 的真实结构。\n- 每个 bead 只做自己的范围。发现跨范围工作时，用 `bd create` 建新任务，或用 `bd update \u003cid\u003e --notes` 记录。\n- 不提交密钥、OAuth token、私有 Figma file ID、真实客户设计内容。\n- Figma-native 能力优先使用 Figma Remote MCP；不要自研 REST API 写画布路径。\n- 任何 prompt/skill 变更都要保留现有 Open Design 工作流的兼容性。\n\n## Acceptance criteria\n\n- Codex adapter uses modern sandboxed invocation or documents exact reason it cannot.\n- JSONL output remains available for parser C21.\n- Relevant docs/tests are updated or an explicit reason is recorded.\n- Validation command results are written to bead notes.\n- If acceptance is met, close with `bd close \u003cid\u003e --reason \"Completed: ...\"`.\n\n## Suggested verification\n\n- Run the smallest relevant tests discovered in A03.\n- For prompt/skill metadata changes, add or update fixture/snapshot tests where possible.\n- For UI changes, use mock data first; real Figma is optional unless this task explicitly says otherwise.\n- End by running `bd ready --json` and recommend the next unblocked task.\n\n## Completion note template\n\n```text\nSummary:\n- ...\n\nFiles changed:\n- ...\n\nValidation:\n- command: ...\n- result: pass/fail/not run with reason\n\nRisks / follow-ups:\n- ...\n```\n",
   "status": "open",
   "priority": 0,
   "issue_type": "task",
   "owner": "rendercoder@sot.app",
-  "created_at": "2026-05-02T06:04:58.423064Z",
+  "created_at": "2026-05-02T09:53:00.041124Z",
   "created_by": "RenderCoder",
-  "updated_at": "2026-05-02T06:04:58.423064Z"
+  "updated_at": "2026-05-02T09:53:00.041124Z"
 }

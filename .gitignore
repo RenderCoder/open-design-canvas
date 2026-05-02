@@ -44,3 +44,5 @@ task.md
 specs/change/active
 .ralph/
 .omx/
+.ai/figma-codex/backups/
+.ai/figma-codex/logs/autopilot/

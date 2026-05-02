@@ -1,1 +1,1 @@
-open-design-canvas-fbs
+open-design-canvas-edy
