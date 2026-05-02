@@ -9,12 +9,15 @@
  *      and the embedded `directions.ts` library.
  *   2. The active design system's DESIGN.md (if any) — palette, typography,
  *      spacing rules treated as authoritative tokens.
- *   3. The active skill's SKILL.md (if any) — workflow specific to the
+ *   3. For Figma-native prompts, the active design system's FIGMA.md (if any)
+ *      — canvas, variable, style, component, and Auto Layout rules layered
+ *      after the visual system.
+ *   4. The active skill's SKILL.md (if any) — workflow specific to the
  *      kind of artifact being built. When the skill ships a seed
  *      (`assets/template.html`) and references (`references/layouts.md`,
  *      `references/checklist.md`), we inject a hard pre-flight rule above
  *      the skill body so the agent reads them BEFORE writing any code.
- *   4. For decks (skillMode === 'deck' OR metadata.kind === 'deck'), the
+ *   5. For decks (skillMode === 'deck' OR metadata.kind === 'deck'), the
  *      deck framework directive (./deck-framework.ts) is pinned LAST so it
  *      overrides any softer slide-handling wording earlier in the stack —
  *      this is the load-bearing nav / counter / scroll JS / print
@@ -53,6 +56,7 @@ export interface ComposeInput {
     | undefined;
   designSystemBody?: string | undefined;
   designSystemTitle?: string | undefined;
+  figmaDesignSystemBody?: string | undefined;
   // Project-level metadata captured by the new-project panel. Drives the
   // agent's understanding of artifact kind, fidelity, speaker-notes intent
   // and animation intent. Missing fields here are exactly what the
@@ -70,6 +74,7 @@ export function composeSystemPrompt({
   skillMode,
   designSystemBody,
   designSystemTitle,
+  figmaDesignSystemBody,
   metadata,
   template,
 }: ComposeInput): string {
@@ -83,9 +88,18 @@ export function composeSystemPrompt({
     BASE_SYSTEM_PROMPT,
   ];
 
+  const isFigmaNativeProject =
+    skillMode === 'figma' || metadata?.figmaOutputSettings?.outputMode === 'figma-native';
+
   if (designSystemBody && designSystemBody.trim().length > 0) {
     parts.push(
       `\n\n## Active design system${designSystemTitle ? ` — ${designSystemTitle}` : ''}\n\nTreat the following DESIGN.md as authoritative for color, typography, spacing, and component rules. Do not invent tokens outside this palette. When you copy the active skill's seed template, bind these tokens into its \`:root\` block before generating any layout.\n\n${designSystemBody.trim()}`,
+    );
+  }
+
+  if (isFigmaNativeProject && figmaDesignSystemBody && figmaDesignSystemBody.trim().length > 0) {
+    parts.push(
+      `\n\n## Active Figma design-system guidance${designSystemTitle ? ` — ${designSystemTitle}` : ''}\n\nTreat the following FIGMA.md as authoritative for Figma variables, styles, component lookup, layer naming, Auto Layout, and canvas validation. Apply it alongside the DESIGN.md above: DESIGN.md controls visual intent, while FIGMA.md controls native Figma implementation. If a legacy design system has no FIGMA.md, continue with DESIGN.md plus the Figma-native canvas directive.\n\n${figmaDesignSystemBody.trim()}`,
     );
   }
 
@@ -122,8 +136,6 @@ export function composeSystemPrompt({
     parts.push(`\n\n---\n\n${DECK_FRAMEWORK_DIRECTIVE}`);
   }
 
-  const isFigmaNativeProject =
-    skillMode === 'figma' || metadata?.figmaOutputSettings?.outputMode === 'figma-native';
   if (isFigmaNativeProject) {
     parts.push(`\n\n---\n\n${FIGMA_NATIVE_DIRECTIVE}`);
   }

@@ -1597,11 +1597,14 @@ export async function startServer({ port = 7456, returnServer = false } = {}) {
 
     let designSystemBody;
     let designSystemTitle;
+    let figmaDesignSystemBody;
     if (effectiveDesignSystemId) {
       const systems = await listDesignSystems(DESIGN_SYSTEMS_DIR);
       const summary = systems.find((s) => s.id === effectiveDesignSystemId);
       designSystemTitle = summary?.title;
-      designSystemBody = await readDesignSystem(DESIGN_SYSTEMS_DIR, effectiveDesignSystemId) ?? undefined;
+      const detail = await readDesignSystemDetail(DESIGN_SYSTEMS_DIR, effectiveDesignSystemId);
+      designSystemBody = detail?.body ?? await readDesignSystem(DESIGN_SYSTEMS_DIR, effectiveDesignSystemId) ?? undefined;
+      figmaDesignSystemBody = detail?.figma?.guidance ?? undefined;
     }
 
     const template = metadata?.kind === 'template' && typeof metadata.templateId === 'string'
@@ -1614,6 +1617,7 @@ export async function startServer({ port = 7456, returnServer = false } = {}) {
       skillMode,
       designSystemBody,
       designSystemTitle,
+      figmaDesignSystemBody,
       craftBody,
       craftSections,
       metadata,

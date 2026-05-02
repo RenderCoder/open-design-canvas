@@ -9,12 +9,15 @@
  *      and the embedded `directions.ts` library.
  *   2. The active design system's DESIGN.md (if any) — palette, typography,
  *      spacing rules treated as authoritative tokens.
- *   3. The active skill's SKILL.md (if any) — workflow specific to the
+ *   3. For Figma-native prompts, the active design system's FIGMA.md (if any)
+ *      — canvas, variable, style, component, and Auto Layout rules layered
+ *      after the visual system.
+ *   4. The active skill's SKILL.md (if any) — workflow specific to the
  *      kind of artifact being built. When the skill ships a seed
  *      (`assets/template.html`) and references (`references/layouts.md`,
  *      `references/checklist.md`), we inject a hard pre-flight rule above
  *      the skill body so the agent reads them BEFORE writing any code.
- *   4. For decks (skillMode === 'deck' OR metadata.kind === 'deck'), the
+ *   5. For decks (skillMode === 'deck' OR metadata.kind === 'deck'), the
  *      deck framework directive (./deck-framework.ts) is pinned LAST so it
  *      overrides any softer slide-handling wording earlier in the stack —
  *      this is the load-bearing nav / counter / scroll JS / print
@@ -70,6 +73,25 @@ type ProjectMetadata = {
       url?: string | null;
     } | null;
   } | null;
+  figmaTarget?: {
+    mode?: string | null;
+    fileUrl?: string | null;
+    fileKey?: string | null;
+    nodeId?: string | null;
+    pageName?: string | null;
+    rootFrameName?: string | null;
+    planKey?: string | null;
+    editorType?: string | null;
+    allowCreateNewFile?: boolean | null;
+  } | null;
+  figmaOutputSettings?: {
+    outputMode?: string | null;
+    preferDesignSystemReuse?: boolean | null;
+    allowPrimitiveFallback?: boolean | null;
+    runCanvasLint?: boolean | null;
+    requireScreenshotCheck?: boolean | null;
+    requireVariableCheck?: boolean | null;
+  } | null;
 };
 type ProjectTemplate = { name: string; description?: string | null; files: Array<{ name: string; content: string }> };
 
@@ -90,6 +112,7 @@ export interface ComposeInput {
     | undefined;
   designSystemBody?: string | undefined;
   designSystemTitle?: string | undefined;
+  figmaDesignSystemBody?: string | undefined;
   // Craft references the active skill opted into via `od.craft.requires`.
   // The daemon resolves the slug list to file contents and concatenates
   // them with section headers; we inject them between the DESIGN.md and
@@ -114,6 +137,7 @@ export function composeSystemPrompt({
   skillMode,
   designSystemBody,
   designSystemTitle,
+  figmaDesignSystemBody,
   craftBody,
   craftSections,
   metadata,
@@ -129,9 +153,18 @@ export function composeSystemPrompt({
     BASE_SYSTEM_PROMPT,
   ];
 
+  const isFigmaNativeProject =
+    skillMode === 'figma' || metadata?.figmaOutputSettings?.outputMode === 'figma-native';
+
   if (designSystemBody && designSystemBody.trim().length > 0) {
     parts.push(
       `\n\n## Active design system${designSystemTitle ? ` — ${designSystemTitle}` : ''}\n\nTreat the following DESIGN.md as authoritative for color, typography, spacing, and component rules. Do not invent tokens outside this palette. When you copy the active skill's seed template, bind these tokens into its \`:root\` block before generating any layout.\n\n${designSystemBody.trim()}`,
+    );
+  }
+
+  if (isFigmaNativeProject && figmaDesignSystemBody && figmaDesignSystemBody.trim().length > 0) {
+    parts.push(
+      `\n\n## Active Figma design-system guidance${designSystemTitle ? ` — ${designSystemTitle}` : ''}\n\nTreat the following FIGMA.md as authoritative for Figma variables, styles, component lookup, layer naming, Auto Layout, and canvas validation. Apply it alongside the DESIGN.md above: DESIGN.md controls visual intent, while FIGMA.md controls native Figma implementation. If a legacy design system has no FIGMA.md, continue with DESIGN.md plus the Figma-native canvas directive.\n\n${figmaDesignSystemBody.trim()}`,
     );
   }
 
@@ -178,7 +211,6 @@ export function composeSystemPrompt({
     parts.push(`\n\n---\n\n${DECK_FRAMEWORK_DIRECTIVE}`);
   }
 
-  const isFigmaNativeProject = skillMode === 'figma';
   if (isFigmaNativeProject) {
     parts.push(`\n\n---\n\n${FIGMA_NATIVE_DIRECTIVE}`);
   }
@@ -304,6 +336,45 @@ function renderMetadataBlock(
     );
   }
 
+  if (metadata.figmaTarget) {
+    const target = metadata.figmaTarget;
+    lines.push('');
+    lines.push('### Figma target');
+    lines.push(`- **mode**: ${target.mode ?? '(unknown — ask: existing file, selection, or new file?)'}`);
+    if (target.fileUrl) lines.push(`- **fileUrl**: ${target.fileUrl}`);
+    if (target.fileKey) lines.push(`- **fileKey**: ${target.fileKey}`);
+    if (target.nodeId) lines.push(`- **nodeId**: ${target.nodeId}`);
+    if (target.pageName) lines.push(`- **pageName**: ${target.pageName}`);
+    if (target.rootFrameName) lines.push(`- **rootFrameName**: ${target.rootFrameName}`);
+    if (target.planKey) lines.push(`- **planKey**: ${target.planKey}`);
+    if (target.editorType) lines.push(`- **editorType**: ${target.editorType}`);
+    if (typeof target.allowCreateNewFile === 'boolean') {
+      lines.push(`- **allowCreateNewFile**: ${target.allowCreateNewFile}`);
+    }
+  }
+
+  if (metadata.figmaOutputSettings) {
+    const settings = metadata.figmaOutputSettings;
+    lines.push('');
+    lines.push('### Figma output settings');
+    lines.push(`- **outputMode**: ${settings.outputMode ?? '(unknown — ask: figma-native, html artifact, or hybrid?)'}`);
+    if (typeof settings.preferDesignSystemReuse === 'boolean') {
+      lines.push(`- **preferDesignSystemReuse**: ${settings.preferDesignSystemReuse}`);
+    }
+    if (typeof settings.allowPrimitiveFallback === 'boolean') {
+      lines.push(`- **allowPrimitiveFallback**: ${settings.allowPrimitiveFallback}`);
+    }
+    if (typeof settings.runCanvasLint === 'boolean') {
+      lines.push(`- **runCanvasLint**: ${settings.runCanvasLint}`);
+    }
+    if (typeof settings.requireScreenshotCheck === 'boolean') {
+      lines.push(`- **requireScreenshotCheck**: ${settings.requireScreenshotCheck}`);
+    }
+    if (typeof settings.requireVariableCheck === 'boolean') {
+      lines.push(`- **requireVariableCheck**: ${settings.requireVariableCheck}`);
+    }
+  }
+
   // Curated prompt template reference for image/video projects. Inlined
   // verbatim (with light truncation) so the agent can borrow structure,
   // mood and phrasing without a separate fetch. The user may have edited
@@ -399,6 +470,10 @@ function derivePreflight(skillBody: string): string {
   if (/references\/themes\.md/.test(skillBody)) refs.push('`references/themes.md`');
   if (/references\/components\.md/.test(skillBody)) refs.push('`references/components.md`');
   if (/references\/checklist\.md/.test(skillBody)) refs.push('`references/checklist.md`');
+  if (/references\/figma-mcp-contract\.md/.test(skillBody)) refs.push('`references/figma-mcp-contract.md`');
+  if (/references\/layout-patterns\.md/.test(skillBody)) refs.push('`references/layout-patterns.md`');
+  if (/references\/canvas-lint\.md/.test(skillBody)) refs.push('`references/canvas-lint.md`');
+  if (/references\/result-report\.md/.test(skillBody)) refs.push('`references/result-report.md`');
   if (refs.length === 0) return '';
   return ` **Pre-flight (do this before any other tool):** Read ${refs.join(', ')} via the path written in the skill-root preamble. The seed template defines the class system you'll paste into; the layouts file is the only acceptable source of section/screen/slide skeletons; the checklist is your P0/P1/P2 gate before emitting \`<artifact>\`. Skipping this step is the #1 reason output regresses to generic AI-slop.`;
 }

@@ -39,6 +39,7 @@ import type {
   ChatAttachment,
   ChatMessage,
   Conversation,
+  DesignSystemDetail,
   DesignSystemSummary,
   OpenTabsState,
   Project,
@@ -122,7 +123,7 @@ export function ProjectView({
   const reattachCancelControllersRef = useRef<Map<string, AbortController>>(new Map());
   const completedReattachRunsRef = useRef<Set<string>>(new Set());
   const skillCache = useRef<Map<string, string>>(new Map());
-  const designCache = useRef<Map<string, string>>(new Map());
+  const designCache = useRef<Map<string, DesignSystemDetail>>(new Map());
   const templateCache = useRef<Map<string, ProjectTemplate>>(new Map());
   // We auto-save the most recent artifact to the project folder. Track the
   // last name we persisted so re-renders during streaming don't spawn
@@ -290,6 +291,7 @@ export function ProjectView({
     let skillMode: SkillSummary['mode'] | undefined;
     let designSystemBody: string | undefined;
     let designSystemTitle: string | undefined;
+    let figmaDesignSystemBody: string | undefined;
 
     if (project.skillId) {
       const summary = skills.find((s) => s.id === project.skillId);
@@ -311,12 +313,14 @@ export function ProjectView({
       designSystemTitle = summary?.title;
       const cached = designCache.current.get(project.designSystemId);
       if (cached !== undefined) {
-        designSystemBody = cached;
+        designSystemBody = cached.body;
+        figmaDesignSystemBody = cached.figma?.guidance ?? undefined;
       } else {
         const detail = await fetchDesignSystem(project.designSystemId);
         if (detail) {
           designSystemBody = detail.body;
-          designCache.current.set(project.designSystemId, detail.body);
+          figmaDesignSystemBody = detail.figma?.guidance ?? undefined;
+          designCache.current.set(project.designSystemId, detail);
         }
       }
     }
@@ -340,6 +344,7 @@ export function ProjectView({
       skillMode,
       designSystemBody,
       designSystemTitle,
+      figmaDesignSystemBody,
       metadata: project.metadata,
       template,
     });

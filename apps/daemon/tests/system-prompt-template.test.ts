@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { composeSystemPrompt } from '../src/prompts/system.js';
+import { listSkills } from '../src/skills.js';
+
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 
 // These tests pin the rendering of metadata.promptTemplate inside the
 // composed system prompt. The composer is the trust boundary between the
@@ -220,5 +226,160 @@ describe('composeSystemPrompt — figma-native directive', () => {
     expect(out).not.toContain('# Figma-native canvas directive');
     expect(out).not.toContain('"kind": "figma_native_result"');
     expect(out).toContain('<artifact>');
+  });
+
+  it('renders Figma target metadata and output settings into prompt context', () => {
+    const out = composeSystemPrompt({
+      skillMode: 'figma',
+      metadata: {
+        kind: 'other',
+        figmaTarget: {
+          mode: 'existing-selection',
+          fileUrl: 'https://www.figma.com/design/demo/Fig?node-id=1-2',
+          fileKey: 'demo',
+          nodeId: '1:2',
+          pageName: 'AI Exploration',
+          rootFrameName: 'Landing / Desktop / 1440',
+          editorType: 'design',
+          allowCreateNewFile: false,
+        },
+        figmaOutputSettings: {
+          outputMode: 'figma-native',
+          preferDesignSystemReuse: true,
+          allowPrimitiveFallback: false,
+          runCanvasLint: true,
+          requireScreenshotCheck: true,
+          requireVariableCheck: true,
+        },
+      },
+    });
+
+    expect(out).toContain('### Figma target');
+    expect(out).toContain('**mode**: existing-selection');
+    expect(out).toContain('**fileUrl**: https://www.figma.com/design/demo/Fig?node-id=1-2');
+    expect(out).toContain('**fileKey**: demo');
+    expect(out).toContain('**nodeId**: 1:2');
+    expect(out).toContain('**pageName**: AI Exploration');
+    expect(out).toContain('**rootFrameName**: Landing / Desktop / 1440');
+    expect(out).toContain('### Figma output settings');
+    expect(out).toContain('**outputMode**: figma-native');
+    expect(out).toContain('**preferDesignSystemReuse**: true');
+    expect(out).toContain('**allowPrimitiveFallback**: false');
+    expect(out).toContain('**runCanvasLint**: true');
+    expect(out).toContain('# Figma-native canvas directive');
+  });
+
+  it('injects the Figma-native directive when output settings request native canvas', () => {
+    const out = composeSystemPrompt({
+      skillMode: 'prototype',
+      skillName: 'web-prototype',
+      skillBody: 'Build an HTML prototype.',
+      metadata: {
+        kind: 'prototype',
+        fidelity: 'high-fidelity',
+        figmaOutputSettings: {
+          outputMode: 'figma-native',
+          preferDesignSystemReuse: true,
+        },
+      },
+    });
+
+    expect(out).toContain('# Figma-native canvas directive');
+    expect(out).toContain('**outputMode**: figma-native');
+    expect(out).toContain('final deliverable is editable Figma-native canvas');
+  });
+
+  it('composes the shipped figma-native-screen skill with its Figma references and MCP directive', async () => {
+    const skills = await listSkills(path.join(repoRoot, 'skills'));
+    const skill = skills.find((s) => s.id === 'figma-native-screen');
+    expect(skill).toBeTruthy();
+
+    const out = composeSystemPrompt({
+      skillMode: skill?.mode,
+      skillName: skill?.name,
+      skillBody: skill?.body,
+      designSystemTitle: 'Figma Native Base',
+      designSystemBody: [
+        '# Figma Native Base',
+        '- Use color/bg/default and space/8 tokens.',
+        '- Reuse Button / Primary when available.',
+      ].join('\n'),
+      figmaDesignSystemBody: [
+        '# Figma Rules',
+        '- Search `Button / Primary` before drawing primitive buttons.',
+        '- Use `color/bg/default` variable aliases in Figma.',
+      ].join('\n'),
+    });
+
+    expect(out).toContain('Active skill — figma-native-screen');
+    expect(out).toContain('Skill root (absolute)');
+    expect(out).toContain('Pre-flight');
+    expect(out).toContain('references/figma-mcp-contract.md');
+    expect(out).toContain('references/layout-patterns.md');
+    expect(out).toContain('references/canvas-lint.md');
+    expect(out).toContain('references/result-report.md');
+    expect(out).toContain('Active design system — Figma Native Base');
+    expect(out).toContain('color/bg/default');
+    expect(out).toContain('Active Figma design-system guidance — Figma Native Base');
+    expect(out).toContain('Search `Button / Primary` before drawing primitive buttons');
+    expect(out).toContain('# Figma-native canvas directive');
+    expect(out).toContain('search_design_system');
+    expect(out).toContain('use_figma');
+    expect(out).toContain('get_metadata');
+    expect(out).toContain('get_screenshot');
+    expect(out).toContain('get_variable_defs');
+    expect(out).toContain('Do not emit a final `<artifact>` block for the Figma deliverable');
+    expect(out).toContain('"kind": "figma_native_result"');
+  });
+
+  it('layers DESIGN.md then FIGMA.md then skill workflow for Figma-native prompts', () => {
+    const out = composeSystemPrompt({
+      skillMode: 'figma',
+      skillName: 'figma-native-screen',
+      skillBody: 'Skill workflow marker.',
+      designSystemTitle: 'Figma Native Base',
+      designSystemBody: 'DESIGN marker: visual rules.',
+      figmaDesignSystemBody: 'FIGMA marker: canvas rules.',
+    });
+
+    const designIdx = out.indexOf('DESIGN marker: visual rules.');
+    const figmaIdx = out.indexOf('FIGMA marker: canvas rules.');
+    const skillIdx = out.indexOf('Skill workflow marker.');
+    const directiveIdx = out.indexOf('# Figma-native canvas directive');
+
+    expect(designIdx).toBeGreaterThan(-1);
+    expect(figmaIdx).toBeGreaterThan(designIdx);
+    expect(skillIdx).toBeGreaterThan(figmaIdx);
+    expect(directiveIdx).toBeGreaterThan(skillIdx);
+  });
+
+  it('omits FIGMA.md companion guidance for non-Figma prompts', () => {
+    const out = composeSystemPrompt({
+      skillMode: 'prototype',
+      skillName: 'web-prototype',
+      skillBody: 'Build an HTML prototype.',
+      designSystemTitle: 'Figma Native Base',
+      designSystemBody: 'DESIGN marker: visual rules.',
+      figmaDesignSystemBody: 'FIGMA marker: canvas rules.',
+    });
+
+    expect(out).toContain('DESIGN marker: visual rules.');
+    expect(out).not.toContain('FIGMA marker: canvas rules.');
+    expect(out).not.toContain('Active Figma design-system guidance');
+    expect(out).not.toContain('# Figma-native canvas directive');
+  });
+
+  it('falls back gracefully when a Figma-native design system has no FIGMA.md', () => {
+    const out = composeSystemPrompt({
+      skillMode: 'figma',
+      skillName: 'figma-native-screen',
+      skillBody: 'Create one native Figma screen.',
+      designSystemTitle: 'Legacy System',
+      designSystemBody: 'DESIGN marker: legacy visual rules.',
+    });
+
+    expect(out).toContain('DESIGN marker: legacy visual rules.');
+    expect(out).not.toContain('Active Figma design-system guidance');
+    expect(out).toContain('# Figma-native canvas directive');
   });
 });

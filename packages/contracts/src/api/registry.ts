@@ -18,6 +18,20 @@ export interface AgentsResponse {
   agents: AgentInfo[];
 }
 
+export interface FigmaSkillMetadata {
+  requiresMcp: boolean;
+  requiresFullSeat: boolean;
+  defaultEditor: 'design' | 'figjam' | null;
+  outputKind: string | null;
+  supportsExistingFile: boolean;
+  supportsCreateNewFile: boolean;
+  validation: {
+    metadata: boolean;
+    screenshot: boolean;
+    variableDefs: boolean;
+  } | null;
+}
+
 export interface SkillSummary {
   id: string;
   name: string;
@@ -28,14 +42,16 @@ export interface SkillSummary {
     | 'deck'
     | 'template'
     | 'design-system'
+    | 'figma'
     | 'image'
     | 'video'
     | 'audio';
-  surface?: 'web' | 'image' | 'video' | 'audio';
-  platform?: 'desktop' | 'mobile' | null;
+  surface?: 'web' | 'figma' | 'image' | 'video' | 'audio';
+  platform?: 'desktop' | 'mobile' | 'tablet' | 'responsive' | null;
   scenario?: string | null;
   previewType: string;
   designSystemRequired: boolean;
+  figma?: FigmaSkillMetadata | null;
   defaultFor: string[];
   upstream: string | null;
   featured?: number | null;
@@ -59,6 +75,18 @@ export interface SkillResponse {
   skill: SkillDetail;
 }
 
+export interface FigmaDesignSystemSummary {
+  hasGuidance: boolean;
+  hasTokens: boolean;
+  hasComponentMap: boolean;
+}
+
+export interface FigmaDesignSystemDetail {
+  guidance: string | null;
+  tokens: unknown | null;
+  componentMap: unknown | null;
+}
+
 export interface DesignSystemSummary {
   id: string;
   title: string;
@@ -66,21 +94,13 @@ export interface DesignSystemSummary {
   summary: string;
   swatches?: string[];
   surface?: 'web' | 'figma' | 'image' | 'video' | 'audio';
-  figma?: {
-    hasGuidance: boolean;
-    hasTokens: boolean;
-    hasComponentMap: boolean;
-  } | null;
+  figma?: FigmaDesignSystemSummary | null;
 }
 
-export interface DesignSystemDetail extends DesignSystemSummary {
+export type DesignSystemDetail = Omit<DesignSystemSummary, 'figma'> & {
   body: string;
-  figma?: {
-    guidance: string | null;
-    tokens: unknown | null;
-    componentMap: unknown | null;
-  } | null;
-}
+  figma?: FigmaDesignSystemDetail | null;
+};
 
 export interface DesignSystemsResponse {
   designSystems: DesignSystemSummary[];
