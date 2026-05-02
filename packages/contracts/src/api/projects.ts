@@ -13,6 +13,36 @@ export type MediaAspect = '1:1' | '16:9' | '9:16' | '4:3' | '3:4';
 
 export type AudioKind = 'music' | 'speech' | 'sfx';
 
+export type FigmaTargetMode = 'existing-file' | 'existing-selection' | 'new-file';
+
+export type FigmaEditorType = 'design' | 'figjam';
+
+export type FigmaOutputMode =
+  | 'figma-native'
+  | 'html-artifact'
+  | 'hybrid-code-to-canvas';
+
+export interface FigmaTarget {
+  mode: FigmaTargetMode;
+  fileUrl?: string;
+  fileKey?: string;
+  nodeId?: string;
+  pageName?: string;
+  rootFrameName?: string;
+  planKey?: string;
+  editorType?: FigmaEditorType;
+  allowCreateNewFile?: boolean;
+}
+
+export interface FigmaOutputSettings {
+  outputMode: FigmaOutputMode;
+  preferDesignSystemReuse?: boolean;
+  allowPrimitiveFallback?: boolean;
+  runCanvasLint?: boolean;
+  requireScreenshotCheck?: boolean;
+  requireVariableCheck?: boolean;
+}
+
 export type ProjectDisplayStatus =
   | 'not_started'
   | 'queued'
@@ -78,6 +108,11 @@ export interface ProjectMetadata {
   // New Project panel. Treated by the system-prompt composer as a stylistic
   // and structural reference for the generation request.
   promptTemplate?: PromptTemplateMetadata;
+  // Optional Figma-native target captured by Figma flows. Stored inside the
+  // existing metadata_json column so older projects without these fields
+  // continue to deserialize unchanged.
+  figmaTarget?: FigmaTarget;
+  figmaOutputSettings?: FigmaOutputSettings;
 }
 
 export interface Project {

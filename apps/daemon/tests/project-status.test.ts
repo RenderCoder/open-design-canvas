@@ -7,6 +7,7 @@ import { afterEach, test } from 'vitest';
 
 import {
   closeDatabase,
+  getProject,
   insertConversation,
   insertProject,
   listLatestProjectRunStatuses,
@@ -154,5 +155,79 @@ test('queued db-latest run status surfaces as running in project projection', ()
     value: 'running',
     updatedAt: 50,
     runId: 'project-queued-db-run-id',
+  });
+});
+
+test('project metadata persists optional Figma target and output settings', () => {
+  const db = createDb();
+
+  insertProject(db, {
+    id: 'project-figma',
+    name: 'Figma project',
+    skillId: 'figma-native-screen',
+    designSystemId: 'figma-native-base',
+    metadata: {
+      kind: 'other',
+      figmaTarget: {
+        mode: 'existing-file',
+        fileUrl: 'https://www.figma.com/design/demo/Fig',
+        fileKey: 'demo',
+        pageName: 'AI Exploration',
+        rootFrameName: 'Landing / Desktop / 1440',
+        editorType: 'design',
+        allowCreateNewFile: false,
+      },
+      figmaOutputSettings: {
+        outputMode: 'figma-native',
+        preferDesignSystemReuse: true,
+        allowPrimitiveFallback: false,
+        runCanvasLint: true,
+        requireScreenshotCheck: true,
+        requireVariableCheck: true,
+      },
+    },
+    createdAt: 1,
+    updatedAt: 1,
+  });
+
+  assert.deepEqual(getProject(db, 'project-figma')?.metadata, {
+    kind: 'other',
+    figmaTarget: {
+      mode: 'existing-file',
+      fileUrl: 'https://www.figma.com/design/demo/Fig',
+      fileKey: 'demo',
+      pageName: 'AI Exploration',
+      rootFrameName: 'Landing / Desktop / 1440',
+      editorType: 'design',
+      allowCreateNewFile: false,
+    },
+    figmaOutputSettings: {
+      outputMode: 'figma-native',
+      preferDesignSystemReuse: true,
+      allowPrimitiveFallback: false,
+      runCanvasLint: true,
+      requireScreenshotCheck: true,
+      requireVariableCheck: true,
+    },
+  });
+});
+
+test('projects without Figma metadata still load', () => {
+  const db = createDb();
+
+  insertProject(db, {
+    id: 'project-legacy',
+    name: 'Legacy project',
+    metadata: {
+      kind: 'prototype',
+      fidelity: 'wireframe',
+    },
+    createdAt: 1,
+    updatedAt: 1,
+  });
+
+  assert.deepEqual(getProject(db, 'project-legacy')?.metadata, {
+    kind: 'prototype',
+    fidelity: 'wireframe',
   });
 });

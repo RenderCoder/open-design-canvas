@@ -122,7 +122,8 @@ export function composeSystemPrompt({
     parts.push(`\n\n---\n\n${DECK_FRAMEWORK_DIRECTIVE}`);
   }
 
-  const isFigmaNativeProject = skillMode === 'figma';
+  const isFigmaNativeProject =
+    skillMode === 'figma' || metadata?.figmaOutputSettings?.outputMode === 'figma-native';
   if (isFigmaNativeProject) {
     parts.push(`\n\n---\n\n${FIGMA_NATIVE_DIRECTIVE}`);
   }
@@ -238,6 +239,45 @@ function renderMetadataBlock(
     lines.push(
       `- **inspirationDesignSystemIds**: ${metadata.inspirationDesignSystemIds.join(', ')} — the user picked these systems as *additional* inspiration alongside the primary one. Borrow palette accents, typographic personality, or component patterns from them; don't replace the primary system's tokens.`,
     );
+  }
+
+  if (metadata.figmaTarget) {
+    const target = metadata.figmaTarget;
+    lines.push('');
+    lines.push('### Figma target');
+    lines.push(`- **mode**: ${target.mode}`);
+    if (target.fileUrl) lines.push(`- **fileUrl**: ${target.fileUrl}`);
+    if (target.fileKey) lines.push(`- **fileKey**: ${target.fileKey}`);
+    if (target.nodeId) lines.push(`- **nodeId**: ${target.nodeId}`);
+    if (target.pageName) lines.push(`- **pageName**: ${target.pageName}`);
+    if (target.rootFrameName) lines.push(`- **rootFrameName**: ${target.rootFrameName}`);
+    if (target.planKey) lines.push(`- **planKey**: ${target.planKey}`);
+    if (target.editorType) lines.push(`- **editorType**: ${target.editorType}`);
+    if (typeof target.allowCreateNewFile === 'boolean') {
+      lines.push(`- **allowCreateNewFile**: ${target.allowCreateNewFile}`);
+    }
+  }
+
+  if (metadata.figmaOutputSettings) {
+    const settings = metadata.figmaOutputSettings;
+    lines.push('');
+    lines.push('### Figma output settings');
+    lines.push(`- **outputMode**: ${settings.outputMode}`);
+    if (typeof settings.preferDesignSystemReuse === 'boolean') {
+      lines.push(`- **preferDesignSystemReuse**: ${settings.preferDesignSystemReuse}`);
+    }
+    if (typeof settings.allowPrimitiveFallback === 'boolean') {
+      lines.push(`- **allowPrimitiveFallback**: ${settings.allowPrimitiveFallback}`);
+    }
+    if (typeof settings.runCanvasLint === 'boolean') {
+      lines.push(`- **runCanvasLint**: ${settings.runCanvasLint}`);
+    }
+    if (typeof settings.requireScreenshotCheck === 'boolean') {
+      lines.push(`- **requireScreenshotCheck**: ${settings.requireScreenshotCheck}`);
+    }
+    if (typeof settings.requireVariableCheck === 'boolean') {
+      lines.push(`- **requireVariableCheck**: ${settings.requireVariableCheck}`);
+    }
   }
 
   // Curated prompt template reference for image/video projects. Inlined
