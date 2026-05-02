@@ -49,6 +49,20 @@ It does not read, print, or store OAuth tokens. A passing configuration check
 means Codex knows about the Figma MCP server; it does not guarantee that the
 current OAuth session has access to a specific Figma file.
 
+For non-interactive Open Design runs, the daemon also passes Codex config
+overrides that pre-approve Figma MCP tools:
+
+```text
+mcp_servers.figma.default_tools_approval_mode = "approve"
+mcp_servers.figma.default_tools_enabled = true
+mcp_servers.figma-cloud.default_tools_approval_mode = "approve"
+mcp_servers.figma-cloud.default_tools_enabled = true
+```
+
+Without those overrides, a headless `codex exec` run with
+`approval_policy="never"` can report a Figma write as `user cancelled MCP tool
+call` because there is no interactive approval surface.
+
 To use a different server name or URL while testing:
 
 ```bash
@@ -71,6 +85,25 @@ Normal code and documentation work should continue with `required = false`.
 Figma-native canvas write tasks must stop before calling `use_figma` and report
 a clear remediation note when the MCP server is missing, disabled, unauthenticated,
 or pointed at a non-Figma URL.
+
+## Write authorization probe
+
+Configuration and OAuth are not enough to prove Figma write authorization. Before
+running a full Figma-native generation, test a disposable editable file:
+
+```bash
+ODC_FIGMA_PROBE_TARGET='https://www.figma.com/design/...' \
+  bash .ai/figma-codex/scripts/check-figma-write-access.sh
+```
+
+This opt-in probe creates one tiny temporary frame named `ODC MCP Write Probe`.
+Use a disposable file or remove the probe page afterward.
+
+If the probe fails with `user cancelled MCP tool call`, check the Codex MCP
+approval configuration above first. If approval is configured and the probe
+still fails, re-run `codex mcp login figma`, confirm the authenticated Figma
+account has a Full seat or equivalent edit capability, and confirm the target
+file grants edit access to that account.
 
 For real Figma writes, verify the connection inside Codex with a non-mutating
 prompt before opening or modifying a file:

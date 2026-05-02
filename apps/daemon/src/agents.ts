@@ -66,6 +66,13 @@ const agentCapabilities = new Map();
 
 const DEFAULT_MODEL_OPTION = { id: 'default', label: 'Default (CLI config)' };
 
+const CODEX_FIGMA_MCP_APPROVAL_CONFIG = [
+  'mcp_servers.figma.default_tools_approval_mode="approve"',
+  'mcp_servers.figma-cloud.default_tools_approval_mode="approve"',
+  'mcp_servers.figma-cloud.default_tools_enabled=true',
+  'mcp_servers.figma.default_tools_enabled=true',
+];
+
 // Map a user-picked reasoning effort to one the chosen model will accept.
 // Codex's CLI accepts `none | minimal | low | medium | high | xhigh`, but
 // real models support narrower subsets — gpt-5.2/5.3/5.4/5.5 reject
@@ -211,6 +218,9 @@ export const AGENT_DEFS = [
         '-c',
         'sandbox_workspace_write.network_access=true',
       ];
+      for (const config of CODEX_FIGMA_MCP_APPROVAL_CONFIG) {
+        args.push('-c', config);
+      }
       if (process.env.OD_CODEX_DISABLE_PLUGINS === '1') {
         args.push('--disable', 'plugins');
       }

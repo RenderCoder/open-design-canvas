@@ -17,12 +17,12 @@ afterEach(() => {
   }
 });
 
-test('codex args use workspace-write sandbox and disable plugins when OD_CODEX_DISABLE_PLUGINS is 1', () => {
+test('codex args use workspace-write sandbox, approve Figma MCP tools, and disable plugins when OD_CODEX_DISABLE_PLUGINS is 1', () => {
   process.env.OD_CODEX_DISABLE_PLUGINS = '1';
 
   const args = codex.buildArgs('', [], [], {}, { cwd: '/tmp/od-project' });
 
-  assert.deepEqual(args.slice(0, 11), [
+  assert.deepEqual(args.slice(0, 19), [
     'exec',
     '--json',
     '--skip-git-repo-check',
@@ -32,6 +32,14 @@ test('codex args use workspace-write sandbox and disable plugins when OD_CODEX_D
     'approval_policy="never"',
     '-c',
     'sandbox_workspace_write.network_access=true',
+    '-c',
+    'mcp_servers.figma.default_tools_approval_mode="approve"',
+    '-c',
+    'mcp_servers.figma-cloud.default_tools_approval_mode="approve"',
+    '-c',
+    'mcp_servers.figma-cloud.default_tools_enabled=true',
+    '-c',
+    'mcp_servers.figma.default_tools_enabled=true',
     '--disable',
     'plugins',
   ]);
@@ -46,6 +54,8 @@ test('codex args keep plugins enabled when OD_CODEX_DISABLE_PLUGINS is unset', (
 
   assert.equal(args.includes('--disable'), false);
   assert.equal(args.includes('plugins'), false);
+  assert.ok(args.includes('mcp_servers.figma.default_tools_approval_mode="approve"'));
+  assert.ok(args.includes('mcp_servers.figma-cloud.default_tools_approval_mode="approve"'));
   assert.equal(args.at(-1), '-');
 });
 

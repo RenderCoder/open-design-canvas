@@ -228,6 +228,8 @@ describe('composeSystemPrompt — figma-native directive', () => {
     expect(out).toContain('not HTML');
     expect(out).toContain('not a screenshot-only mockup');
     expect(out).toContain('Figma MCP tools');
+    expect(out).toContain('prove write authorization');
+    expect(out).toContain('user cancelled MCP tool call');
     expect(out).toContain('create_new_file');
     expect(out).toContain('search_design_system');
     expect(out).toContain('use_figma');
