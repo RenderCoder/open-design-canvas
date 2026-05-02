@@ -1,0 +1,314 @@
+{
+  "version": 1,
+  "tasks": [
+    {
+      "key": "A00",
+      "title": "[Phase 0] 建立 repo map 与基线理解",
+      "p": 0,
+      "deps": [],
+      "outcome": "形成当前 open-design fork 的真实架构地图、命令地图和风险清单。",
+      "notes": "不要改业务代码，只做阅读、记录、验证命令发现。"
+    },
+    {
+      "key": "A01",
+      "title": "[Phase 0] 合并 AGENTS 指南与 Codex/Figma MCP 配置说明",
+      "p": 0,
+      "deps": [
+        "A00"
+      ],
+      "outcome": "让 Codex 在每个会话自动获得 Beads 与 Figma-native 工作协议。",
+      "notes": "检查 install.sh 的结果，不覆盖用户已有重要配置。"
+    },
+    {
+      "key": "A02",
+      "title": "[Phase 0] 确认 Figma-native 架构 ADR 与 schema",
+      "p": 0,
+      "deps": [
+        "A00"
+      ],
+      "outcome": "把架构、schema、边界写入项目 docs，作为后续实现契约。",
+      "notes": "可基于 .ai/figma-codex/docs，但要适配仓库现有 docs 结构。"
+    },
+    {
+      "key": "A03",
+      "title": "[Phase 0] 发现并记录 build/test/lint/check 命令",
+      "p": 0,
+      "deps": [
+        "A00"
+      ],
+      "outcome": "确定后续每个任务应运行的验证命令。",
+      "notes": "查 package.json、pnpm workspace、Makefile、tools-dev。"
+    },
+    {
+      "key": "B10",
+      "title": "[Phase 1] 扩展 skill registry 支持 od.mode=figma",
+      "p": 0,
+      "deps": [
+        "A02"
+      ],
+      "outcome": "Open Design 能发现并保留 Figma-native skill metadata。",
+      "notes": "保持 prototype/deck/template/image/video/audio 不回归。"
+    },
+    {
+      "key": "B11",
+      "title": "[Phase 1] 添加 Figma-native prompt directive",
+      "p": 0,
+      "deps": [
+        "B10"
+      ],
+      "outcome": "Prompt composer 在 Figma mode 下输出 native canvas SOP，不再要求 HTML artifact。",
+      "notes": "新增独立 figma-native prompt 文件更易维护。"
+    },
+    {
+      "key": "B12",
+      "title": "[Phase 1] 扩展 project metadata 支持 Figma target",
+      "p": 0,
+      "deps": [
+        "B10"
+      ],
+      "outcome": "项目元数据能保存 existing/new Figma target 与 output settings。",
+      "notes": "必须 backward compatible。"
+    },
+    {
+      "key": "B13",
+      "title": "[Phase 1] Discovery flow 适配 Figma-native 任务",
+      "p": 1,
+      "deps": [
+        "B11",
+        "B12"
+      ],
+      "outcome": "Figma mode 的 discovery 问题能锁定 file target、surface、screen count、brand、validation。",
+      "notes": "保留原 discovery 的速度和方向选择优势。"
+    },
+    {
+      "key": "B14",
+      "title": "[Phase 1] 添加 Figma result report schema 与 parser",
+      "p": 1,
+      "deps": [
+        "B12"
+      ],
+      "outcome": "Open Design 能识别 agent 返回的 figma_native_result。",
+      "notes": "先做 schema/parser，不必一开始依赖真实 Figma。"
+    },
+    {
+      "key": "B15",
+      "title": "[Phase 2] 实现 Figma result card UI",
+      "p": 1,
+      "deps": [
+        "B14"
+      ],
+      "outcome": "UI 能展示 file URL、root frame、components、variables、checks、issues。",
+      "notes": "可先用 mock data。"
+    },
+    {
+      "key": "B16",
+      "title": "[Phase 2] New project / chat 输入支持 Figma target",
+      "p": 1,
+      "deps": [
+        "B12"
+      ],
+      "outcome": "用户能提供 Figma URL 或选择 create new file。",
+      "notes": "没有 Figma 凭证时也能保存意图。"
+    },
+    {
+      "key": "C20",
+      "title": "[Phase 2] 现代化 Codex adapter 执行参数",
+      "p": 0,
+      "deps": [
+        "A03"
+      ],
+      "outcome": "Codex adapter 不再依赖 --full-auto，优先 workspace-write sandbox 和 JSONL。",
+      "notes": "先找到真实 adapter，再小步改。"
+    },
+    {
+      "key": "C21",
+      "title": "[Phase 2] 解析 Codex JSONL 中的 MCP tool call 事件",
+      "p": 0,
+      "deps": [
+        "C20"
+      ],
+      "outcome": "JSONL parser 能识别 MCP tool calls、plan updates、commands、file changes、errors。",
+      "notes": "加入 fixture。"
+    },
+    {
+      "key": "C22",
+      "title": "[Phase 2] 将 MCP/Figma 事件流映射到 Open Design UI",
+      "p": 1,
+      "deps": [
+        "C21",
+        "B15"
+      ],
+      "outcome": "用户能看到 Figma 搜索、写入、截图、metadata 检查进度。",
+      "notes": "先支持事件文案，不必一次做复杂 UI。"
+    },
+    {
+      "key": "C23",
+      "title": "[Phase 2] 增加 Figma MCP health check 与文档",
+      "p": 1,
+      "deps": [
+        "C20"
+      ],
+      "outcome": "文档/脚本能指导 codex mcp add figma 与连接验证。",
+      "notes": "不要强制所有工程任务都需要 Figma OAuth。"
+    },
+    {
+      "key": "D30",
+      "title": "[Phase 3] 接入 figma-native-screen skill",
+      "p": 0,
+      "deps": [
+        "B10",
+        "B11"
+      ],
+      "outcome": "仓库内新增 skill 可被发现并注入 prompt。",
+      "notes": "本包已提供草案，需适配项目格式和 tests。"
+    },
+    {
+      "key": "D31",
+      "title": "[Phase 3] 接入 figma-native-landing skill",
+      "p": 1,
+      "deps": [
+        "D30"
+      ],
+      "outcome": "Landing page Figma-native skill 可用。",
+      "notes": "强调 sections、components、variables、canvas lint。"
+    },
+    {
+      "key": "D32",
+      "title": "[Phase 3] 接入 figma-native-dashboard skill",
+      "p": 1,
+      "deps": [
+        "D30"
+      ],
+      "outcome": "Dashboard Figma-native skill 可用。",
+      "notes": "强调 dense data layout 和 states。"
+    },
+    {
+      "key": "D33",
+      "title": "[Phase 3] 接入 figma-native-mobile-flow skill",
+      "p": 1,
+      "deps": [
+        "D30"
+      ],
+      "outcome": "Mobile flow Figma-native skill 可用。",
+      "notes": "强调 screen order、tap target、mobile Auto Layout。"
+    },
+    {
+      "key": "D34",
+      "title": "[Phase 3] 接入 figma-canvas-critique / lint skill",
+      "p": 1,
+      "deps": [
+        "D30",
+        "B14"
+      ],
+      "outcome": "可以对 Figma output 做结构化 critique 和 repair plan。",
+      "notes": "先由 agent 调 MCP 检查并输出 report。"
+    },
+    {
+      "key": "D35",
+      "title": "[Phase 3] 建立 FIGMA.md / tokens / component-map 设计系统桥梁",
+      "p": 0,
+      "deps": [
+        "B10"
+      ],
+      "outcome": "设计系统能表达 Figma-specific variables、styles、component lookup。",
+      "notes": "基于 design-systems/figma-native-base 草案。"
+    },
+    {
+      "key": "D36",
+      "title": "[Phase 3] 让 prompt composer 同时读取 DESIGN.md 与 FIGMA.md",
+      "p": 1,
+      "deps": [
+        "D35",
+        "B11"
+      ],
+      "outcome": "Figma mode 能把视觉规则和 Figma 操作规则都注入上下文。",
+      "notes": "旧 design system 没 FIGMA.md 时要 graceful fallback。"
+    },
+    {
+      "key": "E40",
+      "title": "[Phase 4] 单元测试：skill registry 与 prompt composer",
+      "p": 0,
+      "deps": [
+        "B11",
+        "D30"
+      ],
+      "outcome": "关键 Figma mode 行为有自动化测试。",
+      "notes": "包含旧 skill 不回归。"
+    },
+    {
+      "key": "E41",
+      "title": "[Phase 4] 单元测试：Codex JSONL parser MCP fixtures",
+      "p": 0,
+      "deps": [
+        "C21"
+      ],
+      "outcome": "MCP tool call 解析稳定。",
+      "notes": "fixture 应覆盖成功、失败、partial。"
+    },
+    {
+      "key": "E42",
+      "title": "[Phase 4] Mocked E2E：Figma-native 生成流程",
+      "p": 1,
+      "deps": [
+        "B15",
+        "C22",
+        "D30",
+        "E40",
+        "E41"
+      ],
+      "outcome": "不依赖真实 Figma，也能跑通 UI/adapter/result report。",
+      "notes": "便于 CI。"
+    },
+    {
+      "key": "E43",
+      "title": "[Phase 4] Optional real Figma smoke test",
+      "p": 2,
+      "deps": [
+        "E42",
+        "C23",
+        "D35"
+      ],
+      "outcome": "在有 Full seat 和 edit permission 的环境中跑真实 Figma 写入。",
+      "notes": "若无凭证，记录 blocked，不影响 mocked CI。"
+    },
+    {
+      "key": "E44",
+      "title": "[Phase 5] 完善用户文档与 maintainer guide",
+      "p": 1,
+      "deps": [
+        "E42",
+        "D31",
+        "D32",
+        "D33",
+        "D34",
+        "D36"
+      ],
+      "outcome": "新用户和贡献者能理解如何使用/扩展 Figma-native mode。",
+      "notes": "覆盖 setup、limitations、examples。"
+    },
+    {
+      "key": "E45",
+      "title": "[Phase 5] License / trademark / attribution audit",
+      "p": 1,
+      "deps": [
+        "E44"
+      ],
+      "outcome": "开源发布前的授权和品牌边界清晰。",
+      "notes": "避免暗示第三方品牌授权。"
+    },
+    {
+      "key": "E46",
+      "title": "[Phase 5] Release readiness 与开源贡献清单",
+      "p": 1,
+      "deps": [
+        "E40",
+        "E41",
+        "E42",
+        "E44",
+        "E45"
+      ],
+      "outcome": "形成可发布版本的 release checklist。",
+      "notes": "包括 known issues 和 roadmap。"
+    }
+  ]
+}

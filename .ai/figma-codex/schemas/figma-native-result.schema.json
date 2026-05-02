@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FigmaNativeResult",
+  "type": "object",
+  "required": [
+    "kind",
+    "status",
+    "fileUrl",
+    "checks"
+  ],
+  "properties": {
+    "kind": {
+      "const": "figma_native_result"
+    },
+    "status": {
+      "enum": [
+        "completed",
+        "partial",
+        "blocked",
+        "failed"
+      ]
+    },
+    "fileUrl": {
+      "type": "string"
+    },
+    "fileKey": {
+      "type": "string"
+    },
+    "pageName": {
+      "type": "string"
+    },
+    "rootFrame": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "nodeId": {
+          "type": "string"
+        },
+        "width": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": true
+    },
+    "created": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "updated": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "reusedComponents": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "variablesUsed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "stylesUsed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "hardcodedValues": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "checks": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "enum": [
+            "passed",
+            "failed",
+            "skipped",
+            "unknown"
+          ]
+        },
+        "screenshot": {
+          "enum": [
+            "passed",
+            "failed",
+            "skipped",
+            "unknown"
+          ]
+        },
+        "variables": {
+          "enum": [
+            "passed",
+            "failed",
+            "skipped",
+            "unknown"
+          ]
+        },
+        "autoLayout": {
+          "enum": [
+            "passed",
+            "failed",
+            "skipped",
+            "unknown"
+          ]
+        },
+        "semanticNames": {
+          "enum": [
+            "passed",
+            "failed",
+            "skipped",
+            "unknown"
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "knownIssues": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "nextIteration": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": true
+}

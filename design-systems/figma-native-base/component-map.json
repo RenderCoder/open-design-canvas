@@ -1,0 +1,41 @@
+{
+  "components": [
+    {
+      "query": "Button Primary",
+      "fallback": "Frame with horizontal Auto Layout, text label, action primary fill"
+    },
+    {
+      "query": "Button Secondary",
+      "fallback": "Frame with border, transparent fill, text label"
+    },
+    {
+      "query": "Card",
+      "fallback": "Frame with surface fill, border, radius/12, vertical Auto Layout"
+    },
+    {
+      "query": "Input",
+      "fallback": "Frame with border, placeholder text, radius/8"
+    },
+    {
+      "query": "Badge",
+      "fallback": "Small horizontal frame with label text"
+    },
+    {
+      "query": "NavItem",
+      "fallback": "Horizontal frame with icon placeholder and label"
+    },
+    {
+      "query": "PricingCard",
+      "fallback": "Card with plan name, price, feature list, CTA"
+    },
+    {
+      "query": "FAQItem",
+      "fallback": "Vertical frame with question and answer text"
+    }
+  ],
+  "rules": {
+    "searchBeforePrimitive": true,
+    "reportFallbacks": true,
+    "preferInstances": true
+  }
+}
