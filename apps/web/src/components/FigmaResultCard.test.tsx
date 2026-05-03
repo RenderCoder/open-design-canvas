@@ -149,6 +149,42 @@ describe('FigmaResultCard', () => {
     expect(markup).toContain('download="figma-20260503-142530-home-hero-refine.png"');
   });
 
+  it('keeps a partial canvas success visible when snapshot archiving fails', () => {
+    const parsed = normalizeFigmaNativeResult({
+      kind: 'figma_native_result',
+      status: 'partial',
+      fileUrl: 'https://www.figma.com/design/demo-file/Product',
+      fileKey: 'demo-file',
+      pageName: 'AI Landing Exploration',
+      rootFrames: [{ name: 'Landing / Desktop / 1440', nodeId: '1:2' }],
+      checks: {
+        metadata: 'passed',
+        screenshot: 'passed',
+        variables: 'passed',
+        textReadability: 'passed',
+        textOverlap: 'passed',
+      },
+      reusedComponents: [{ name: 'Card' }],
+      snapshot: {
+        status: 'failed',
+        qualityStatus: 'failed',
+        error: 'MCP export returned empty bytes.',
+      },
+    });
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) throw new Error(parsed.error);
+
+    const markup = renderToStaticMarkup(<FigmaResultCard result={parsed.result} />);
+
+    expect(markup).toContain('Partial');
+    expect(markup).toContain('Open Figma file');
+    expect(markup).toContain('Snapshot');
+    expect(markup).toContain('Failed');
+    expect(resultWarnings(parsed.result)).toContain(
+      'Figma snapshot failed: MCP export returned empty bytes.',
+    );
+  });
+
   it('renders a figma_result event inside an assistant message', () => {
     const parsed = normalizeFigmaNativeResult(validFixture);
     expect(parsed.ok).toBe(true);

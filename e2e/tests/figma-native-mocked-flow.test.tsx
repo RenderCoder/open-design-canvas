@@ -9,6 +9,8 @@ import { listSkills } from '../../apps/daemon/src/skills.js';
 import validFigmaResult from '../../apps/web/src/artifacts/fixtures/figma-result-valid.json';
 import { parseFigmaNativeResultText } from '../../apps/web/src/artifacts/figma-result';
 import { AssistantMessage } from '../../apps/web/src/components/AssistantMessage';
+import { FileViewer } from '../../apps/web/src/components/FileViewer';
+import { FileWorkspace } from '../../apps/web/src/components/FileWorkspace';
 import type { AgentEvent, ChatMessage } from '../../apps/web/src/types';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -77,12 +79,28 @@ describe('mocked Figma-native generation flow', () => {
       role: 'assistant',
       content: assistantText,
       events: [...uiEvents, { kind: 'figma_result', result: parsedResult.result }],
+      producedFiles: [
+        {
+          name: 'figma-20260503-142530-ai-landing-exploration.png',
+          path: 'figma-20260503-142530-ai-landing-exploration.png',
+          type: 'file',
+          size: 1_048_576,
+          mtime: 1_714_742_730,
+          kind: 'image',
+          mime: 'image/png',
+        },
+      ],
       startedAt: 1_000,
       endedAt: 4_000,
     };
 
     const markup = renderToStaticMarkup(
-      <AssistantMessage message={message} streaming={false} projectId="project-figma" />,
+      <AssistantMessage
+        message={message}
+        streaming={false}
+        projectId="project-figma"
+        onRequestOpenFile={() => undefined}
+      />,
     );
 
     expect(markup).toContain('Searched design system');
@@ -92,11 +110,58 @@ describe('mocked Figma-native generation flow', () => {
     expect(markup).toContain('Checked Figma variables');
     expect(markup).toContain('Figma native result');
     expect(markup).toContain('Open Figma file');
+    expect(markup).toContain('Open snapshot');
+    expect(markup).toContain('figma-20260503-142530-ai-landing-exploration.png');
     expect(markup).toContain('AI Landing Exploration');
     expect(markup).toContain('Landing / Desktop / 1440');
     expect(markup).toContain('Button / Primary - team library');
     expect(markup).toContain('Add mobile variant');
+    expect(markup).toContain('Files from this turn');
     expect(markup).not.toContain('mcp__figma.search_design_system');
+
+    const designFilesMarkup = renderToStaticMarkup(
+      <FileWorkspace
+        projectId="project-figma"
+        files={message.producedFiles ?? []}
+        onRefreshFiles={() => undefined}
+        isDeck={false}
+        highlightedFileName="figma-20260503-142530-ai-landing-exploration.png"
+        tabsState={{ tabs: [], active: null }}
+        onTabsStateChange={() => undefined}
+      />,
+    );
+
+    expect(designFilesMarkup).toContain('data-highlighted="true"');
+
+    const openedSnapshotMarkup = renderToStaticMarkup(
+      <FileWorkspace
+        projectId="project-figma"
+        files={message.producedFiles ?? []}
+        onRefreshFiles={() => undefined}
+        isDeck={false}
+        tabsState={{
+          tabs: ['figma-20260503-142530-ai-landing-exploration.png'],
+          active: 'figma-20260503-142530-ai-landing-exploration.png',
+        }}
+        onTabsStateChange={() => undefined}
+      />,
+    );
+
+    expect(openedSnapshotMarkup).toContain('class="viewer image-viewer"');
+    expect(openedSnapshotMarkup).toContain('data-min-zoom="25"');
+    expect(openedSnapshotMarkup).toContain('data-max-zoom="1000"');
+
+    const imageViewerMarkup = renderToStaticMarkup(
+      <FileViewer
+        projectId="project-figma"
+        file={message.producedFiles![0]!}
+      />,
+    );
+
+    expect(imageViewerMarkup).toContain('aria-label="Zoom out"');
+    expect(imageViewerMarkup).toContain('aria-label="Zoom in"');
+    expect(imageViewerMarkup).toContain('aria-label="Reset zoom"');
+    expect(imageViewerMarkup).toContain('class="viewer-body image-body image-body-zoomable"');
   });
 });
 

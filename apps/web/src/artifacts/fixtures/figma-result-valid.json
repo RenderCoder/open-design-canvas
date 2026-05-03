@@ -36,6 +36,25 @@
     "autoLayout": "passed",
     "semanticNames": "passed"
   },
+  "snapshot": {
+    "status": "passed",
+    "fileName": "figma-20260503-142530-ai-landing-exploration.png",
+    "projectRelativePath": "figma-20260503-142530-ai-landing-exploration.png",
+    "pixelWidth": 2880,
+    "pixelHeight": 4800,
+    "scale": 2,
+    "expectedMinWidth": 2800,
+    "actualWidth": 2880,
+    "actualHeight": 4800,
+    "qualityStatus": "high_resolution",
+    "sourceFileKey": "demo-file",
+    "sourceNodeId": "1:2",
+    "sourceNodeName": "Landing / Desktop / 1440",
+    "capturedAt": "2026-05-03T14:25:30.000Z",
+    "purposeSlug": "ai-landing-exploration",
+    "exportMethod": "figma_mcp_export_async",
+    "warnings": []
+  },
   "issues": [],
   "nextActions": ["Add mobile variant"],
   "mcpEvents": [
