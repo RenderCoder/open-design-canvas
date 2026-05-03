@@ -36,7 +36,7 @@ const REQUIRED_CODES = [
 describe('Figma preflight contract', () => {
   it('defines explicit machine codes for the authorization state machine', () => {
     expect(FIGMA_PREFLIGHT_STEP_CODES).toEqual(
-      expect.arrayContaining(REQUIRED_CODES),
+      expect.arrayContaining([...REQUIRED_CODES]),
     );
     expect(FIGMA_PREFLIGHT_BLOCKING_STEP_CODES).toEqual(
       expect.arrayContaining([
@@ -62,7 +62,7 @@ describe('Figma preflight contract', () => {
   });
 
   it('allows project metadata to store the latest successful preflight summary', () => {
-    const preflight = readyFixture satisfies FigmaPreflightSummary;
+    const preflight = readyFixture as FigmaPreflightSummary;
     const metadata = {
       kind: 'other',
       figmaPreflight: preflight,
@@ -76,7 +76,7 @@ describe('Figma preflight contract', () => {
   });
 
   it('covers the main failure paths with safe, UI-consumable details', () => {
-    const failures = failuresFixture satisfies FigmaPreflightSummary[];
+    const failures = failuresFixture as FigmaPreflightSummary[];
     const codes = failures.flatMap((summary) => summary.steps.map((step) => step.code));
 
     expect(codes).toEqual(
@@ -113,7 +113,7 @@ describe('Figma preflight contract', () => {
   });
 
   it('validates ready preflight against the exact Figma target fingerprint', () => {
-    const preflight = readyFixture satisfies FigmaPreflightSummary;
+    const preflight = readyFixture as FigmaPreflightSummary;
     const target = {
       mode: 'existing-file' as const,
       fileUrl: `https://figma.com/design/${preflight.target.fileKey}/Demo`,

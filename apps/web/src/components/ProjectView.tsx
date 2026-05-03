@@ -253,6 +253,14 @@ export function ProjectView({
     () => new Map(agents.map((agent) => [agent.id, agent])),
     [agents],
   );
+  const activeSkill = useMemo(
+    () => skills.find((s) => s.id === project.skillId) ?? null,
+    [skills, project.skillId],
+  );
+  const figmaTargetEnabled =
+    activeSkill?.mode === 'figma' ||
+    activeSkill?.surface === 'figma' ||
+    project.metadata?.figmaOutputSettings?.outputMode === 'figma-native';
 
   // Keep the @-picker's source of truth fresh: every refreshSignal bump
   // (artifact saved, sketch saved, image uploaded) refetches; on first
@@ -1079,18 +1087,10 @@ export function ProjectView({
     const ds = designSystems.find((d) => d.id === project.designSystemId)?.title;
     return [skill, ds].filter(Boolean).join(' · ') || t('project.metaFreeform');
   }, [skills, designSystems, project.skillId, project.designSystemId, t]);
-  const activeSkill = useMemo(
-    () => skills.find((s) => s.id === project.skillId) ?? null,
-    [skills, project.skillId],
-  );
   const activeDesignSystemTitle = useMemo(
     () => designSystems.find((d) => d.id === project.designSystemId)?.title ?? null,
     [designSystems, project.designSystemId],
   );
-  const figmaTargetEnabled =
-    activeSkill?.mode === 'figma' ||
-    activeSkill?.surface === 'figma' ||
-    project.metadata?.figmaOutputSettings?.outputMode === 'figma-native';
   const figmaPreflightGate = figmaTargetEnabled
     ? validateFigmaPreflightForTarget(project.metadata?.figmaTarget, project.metadata?.figmaPreflight)
     : { ok: true, reason: 'not_figma_native' as const };

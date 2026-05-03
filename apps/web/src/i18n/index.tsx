@@ -17,6 +17,7 @@ import { ja } from './locales/ja';
 import { ko } from './locales/ko';
 import { ptBR } from './locales/pt-BR';
 import { ru } from './locales/ru';
+import { tr } from './locales/tr';
 import { zhCN } from './locales/zh-CN';
 import { zhTW } from './locales/zh-TW';
 import { LOCALES, type Dict, type Locale } from './types';
@@ -35,6 +36,7 @@ const DICTS: Record<Locale, Dict> = {
   'es-ES': esES,
   'ru': ru,
   'fa': fa,
+  'tr': { ...en, ...tr },
   'ja': ja,
   'ko': ko,
 };

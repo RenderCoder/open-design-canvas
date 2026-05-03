@@ -288,7 +288,7 @@ function FigmaMcpCard({
 }) {
   const inputObj = asRecord(input);
   const tool = figmaToolName(name, inputObj);
-  const args = asRecord(inputObj.args) ?? {};
+  const args = asRecord(inputObj?.args) ?? {};
   const label = figmaProgressLabel(tool, result);
   const details = figmaProgressDetails(tool, args);
 

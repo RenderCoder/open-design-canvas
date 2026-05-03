@@ -1,6 +1,6 @@
 import type { Dict } from '../types';
 
-export const tr: Dict = {
+export const tr: Partial<Dict> = {
   'common.cancel': 'İptal et',
   'common.save': 'Kaydet',
   'common.close': 'Kapat',

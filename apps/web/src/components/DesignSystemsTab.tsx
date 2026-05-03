@@ -52,7 +52,7 @@ export function DesignSystemsTab({ systems, selectedId, onSelect, onPreview }: P
   );
 
   const surfaceCounts = useMemo(() => {
-    const counts: Record<SurfaceFilter, number> = { all: systems.length, web: 0, image: 0, video: 0, audio: 0 };
+    const counts: Record<SurfaceFilter, number> = { all: systems.length, web: 0, figma: 0, image: 0, video: 0, audio: 0 };
     for (const s of systems) counts[surfaceOf(s)]++;
     return counts;
   }, [systems]);

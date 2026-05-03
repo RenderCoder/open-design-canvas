@@ -2,7 +2,19 @@ import { describe, expect, it } from 'vitest';
 import { en } from './locales/en';
 import { LOCALES, LOCALE_LABEL, type Dict, type Locale } from './types';
 
-const EXPECTED_LOCALES = ['en', 'de', 'zh-CN', 'zh-TW', 'pt-BR', 'es-ES', 'ru', 'fa', 'ja', 'ko'];
+const EXPECTED_LOCALES = [
+  'en',
+  'de',
+  'zh-CN',
+  'zh-TW',
+  'pt-BR',
+  'es-ES',
+  'ru',
+  'fa',
+  'tr',
+  'ja',
+  'ko',
+];
 
 function placeholders(value: string): string[] {
   const names: string[] = [];
@@ -16,13 +28,13 @@ function placeholders(value: string): string[] {
 
 async function loadDict(locale: Locale): Promise<Dict> {
   const module = await import(`./locales/${locale}.ts`);
-  const dict = Object.values(module).find((value): value is Dict => {
+  const dict = Object.values(module).find((value): value is Partial<Dict> => {
     return Boolean(value) && typeof value === 'object';
   });
   if (!dict) {
     throw new Error(`No dictionary export found for locale ${locale}`);
   }
-  return dict;
+  return { ...en, ...dict };
 }
 
 describe('i18n locales', () => {
@@ -30,6 +42,7 @@ describe('i18n locales', () => {
     expect(LOCALES).toEqual(EXPECTED_LOCALES);
     expect((LOCALE_LABEL as Record<string, string>).de).toBe('Deutsch');
     expect((LOCALE_LABEL as Record<string, string>).ja).toBe('日本語');
+    expect((LOCALE_LABEL as Record<string, string>).tr).toBe('Türkçe');
   });
 
   it('keeps locale dictionaries aligned with English keys and placeholders', async () => {
