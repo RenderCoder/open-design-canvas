@@ -137,6 +137,31 @@ adds a non-interactive URL mode, but the current Web/Electron-safe path is:
 show the command, offer a copy button, then poll/recheck with
 `poll_mcp_status` after the user completes the terminal flow.
 
+## Mocked CI coverage matrix
+
+Figma OAuth and real canvas writes are intentionally not required in default CI.
+The authorization and generation gate are covered with sanitized mock runners,
+mocked preflight summaries, and redacted fixtures:
+
+| Path | Default CI coverage |
+| --- | --- |
+| Codex CLI missing | `apps/daemon/tests/figma-preflight.test.ts` mocks `ENOENT` from `codex --version`. |
+| Figma MCP not added | `apps/daemon/tests/figma-preflight.test.ts` mocks `codex mcp get figma --json` failure and verifies the setup command. |
+| Figma MCP URL wrong | `apps/daemon/tests/figma-preflight.test.ts` mocks a non-Figma MCP URL and only exposes the safe host. |
+| OAuth missing or user cancelled | `apps/daemon/tests/figma-preflight.test.ts` mocks unauthenticated MCP status and cancelled write probes; `apps/web/src/components/FigmaMcpAuthorizationWizard.test.tsx` verifies the human authorization recovery state. |
+| Figma target URL invalid | `apps/daemon/tests/figma-preflight.test.ts` verifies the target is rejected before Codex runs; `apps/web/src/components/FigmaMcpAuthorizationWizard.test.tsx` verifies the target-fix UI copy. |
+| `get_metadata` cannot read the file | `apps/daemon/tests/figma-preflight.test.ts` mocks read-probe failure and verifies `request_file_access`; `apps/web/src/components/FigmaMcpAuthorizationWizard.test.tsx` verifies the read-blocked UI copy. |
+| `use_figma` lacks edit permission | `apps/daemon/tests/figma-preflight.test.ts` mocks permission-denied write output; `apps/web/src/components/FigmaMcpAuthorizationWizard.test.tsx` verifies the edit-access UI copy. |
+| `use_figma` write probe succeeds | `apps/daemon/tests/figma-preflight.test.ts` verifies `write_probe_passed`, redacted target details, and `canGenerate`; `apps/web/src/components/FigmaMcpAuthorizationWizard.test.tsx` verifies the ready wizard state. |
+| Target change makes preflight stale | `apps/web/src/artifacts/figma-preflight-contract.test.ts`, `apps/web/src/providers/sse.test.ts`, and `apps/daemon/tests/figma-preflight-route.test.ts` verify fingerprint matching and stale-preflight rejection. |
+| Web/Electron fallback action copy | `apps/daemon/tests/figma-preflight.test.ts`, `apps/web/src/providers/registry.test.ts`, and `apps/web/src/components/FigmaMcpAuthorizationWizard.test.tsx` verify `manual_command` responses and copyable command text. |
+| Mocked end-to-end Figma-native flow | `e2e/tests/figma-native-mocked-flow.test.tsx` parses mocked Codex JSONL with Figma MCP events, renders the result card, and uses redacted fixture data only. |
+
+These tests must not contain OAuth tokens, private file keys, private file URLs,
+customer screenshots, or private design content. Use placeholders such as
+`demo-file`, `abc123456789`, `<redacted-file-key>`, and
+`https://example.invalid/...` for fixtures.
+
 ## Seat and permission notes
 
 - Read-only design context workflows can work with lower permissions.

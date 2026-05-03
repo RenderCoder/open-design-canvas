@@ -100,6 +100,27 @@ describe('runFigmaPreflight', () => {
     assert.equal(preflight.safeDetails?.command, 'codex mcp login figma');
   });
 
+  it('rejects invalid existing-file targets before running Codex', async () => {
+    const runner = configuredRunner();
+
+    const preflight = await runFigmaPreflight({
+      target: {
+        mode: 'existing-file',
+        fileUrl: 'not-a-figma-url',
+        editorType: 'design',
+      },
+      runner,
+      now: fixedNow,
+    });
+
+    assert.equal(preflight.overallStatus, 'target_invalid');
+    assert.equal(preflight.canGenerate, false);
+    assert.equal(preflight.userAction, 'choose_valid_target');
+    assert.equal(preflight.steps.at(-1)?.code, 'target_url_invalid');
+    assert.equal(preflight.safeDetails?.errorClass, 'invalid_target');
+    assert.equal(runner.calls.length, 0);
+  });
+
   it('passes read-only preflight but keeps generation blocked until write probe passes', async () => {
     const runner = configuredRunner();
 
@@ -109,6 +130,24 @@ describe('runFigmaPreflight', () => {
     assert.equal(preflight.canGenerate, false);
     assert.equal(preflight.steps.at(-1)?.code, 'file_readable');
     assert.ok(runner.calls.some((call) => call.input?.includes('get_metadata')));
+  });
+
+  it('classifies get_metadata read failures as file access blockers', async () => {
+    const runner = configuredRunner('PASS write ok', 'FAIL file not found');
+
+    const preflight = await runFigmaPreflight({
+      target,
+      runner,
+      now: fixedNow,
+    });
+
+    assert.equal(preflight.overallStatus, 'read_blocked');
+    assert.equal(preflight.canGenerate, false);
+    assert.equal(preflight.userAction, 'request_file_access');
+    assert.equal(preflight.steps.at(-1)?.code, 'file_unreadable');
+    assert.equal(preflight.safeDetails?.errorClass, 'permission');
+    assert.ok(runner.calls.some((call) => call.input?.includes('get_metadata')));
+    assert.ok(!runner.calls.some((call) => call.input?.includes('ODC MCP Write Probe')));
   });
 
   it('passes write preflight and redacts URL details for UI display', async () => {
@@ -129,6 +168,24 @@ describe('runFigmaPreflight', () => {
     assert.equal(preflight.target.nodeId, '1:2');
     assert.equal(preflight.target.fileUrlRedacted, 'https://www.figma.com/design/abc1...6789');
     assert.ok(runner.calls.some((call) => call.input?.includes('ODC MCP Write Probe')));
+  });
+
+  it('classifies use_figma edit failures as write permission blockers', async () => {
+    const runner = configuredRunner('FAIL permission denied edit access');
+
+    const preflight = await runFigmaPreflight({
+      target,
+      checkWriteAccess: true,
+      runner,
+      now: fixedNow,
+    });
+
+    assert.equal(preflight.overallStatus, 'write_blocked');
+    assert.equal(preflight.canGenerate, false);
+    assert.equal(preflight.userAction, 'request_edit_access');
+    assert.equal(preflight.steps.at(-1)?.code, 'edit_permission_missing');
+    assert.equal(preflight.safeDetails?.errorClass, 'permission');
+    assert.equal(preflight.safeDetails?.probeNodeName, 'ODC MCP Write Probe');
   });
 
   it('maps user-cancelled write probe to an authorization action', async () => {
@@ -202,7 +259,7 @@ describe('runFigmaMcpSetupAction', () => {
   });
 });
 
-function configuredRunner(writeOutput = 'PASS write ok') {
+function configuredRunner(writeOutput = 'PASS write ok', readOutput = 'PASS read ok') {
   let execCalls = 0;
   return new FakeRunner(async (_command, args) => {
     if (args.includes('--version')) return ok('codex 1.0.0');
@@ -213,7 +270,7 @@ function configuredRunner(writeOutput = 'PASS write ok') {
       return ok(JSON.stringify([{ name: 'figma', auth_status: 'o_auth' }]));
     }
     execCalls += 1;
-    return ok(execCalls === 1 ? 'PASS read ok' : writeOutput);
+    return ok(execCalls === 1 ? readOutput : writeOutput);
   });
 }
 

@@ -103,6 +103,38 @@ describe('FigmaMcpAuthorizationWizard', () => {
     expect(markup).not.toContain('manual_command');
   });
 
+  it('explains invalid target URLs before setup or OAuth actions', () => {
+    const markup = render(preflight({
+      overallStatus: 'target_invalid',
+      userAction: 'choose_valid_target',
+      steps: [
+        { code: 'target_url_invalid', status: 'failed', messageKey: 'figma.preflight.target_url_invalid' },
+      ],
+      safeDetails: { errorClass: 'invalid_target', retryable: false },
+    }));
+
+    expect(markup).toContain('Choose a valid Figma file URL');
+    expect(markup).toContain('File access');
+    expect(markup).not.toContain('Authorize Figma');
+    expect(markup).not.toContain('Prepare setup');
+  });
+
+  it('explains read-access blockers without asking for write probing first', () => {
+    const markup = render(preflight({
+      overallStatus: 'read_blocked',
+      userAction: 'request_file_access',
+      steps: [
+        { code: 'figma_mcp_available', status: 'passed', messageKey: 'figma.preflight.figma_mcp_available' },
+        { code: 'file_unreadable', status: 'failed', messageKey: 'figma.preflight.file_unreadable' },
+      ],
+    }));
+
+    expect(markup).toContain('This account cannot read the target file');
+    expect(markup).toContain('File access');
+    expect(markup).toContain('Check write permission');
+    expect(markup).not.toContain('Authorize Figma');
+  });
+
   it('uses the same human authorization recovery for user-cancelled login', () => {
     const markup = render(preflight({
       overallStatus: 'auth_required',
