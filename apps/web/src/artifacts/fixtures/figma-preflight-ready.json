@@ -1,0 +1,40 @@
+{
+  "kind": "figma_preflight",
+  "overallStatus": "ready",
+  "lastCheckedAt": "2026-05-03T04:30:00.000Z",
+  "canGenerate": true,
+  "userAction": "none",
+  "target": {
+    "mode": "existing-file",
+    "editorType": "design",
+    "fileKey": "demo-file",
+    "fileKeyRedacted": "demo...file",
+    "fileUrlRedacted": "https://www.figma.com/design/demo...file/Product",
+    "pageName": "AI Landing Exploration"
+  },
+  "steps": [
+    {
+      "code": "figma_mcp_available",
+      "status": "passed",
+      "messageKey": "figma.preflight.figma_mcp_available"
+    },
+    {
+      "code": "file_readable",
+      "status": "passed",
+      "messageKey": "figma.preflight.file_readable",
+      "safeDetails": {
+        "fileKey": "demo-file",
+        "fileKeyRedacted": "demo...file"
+      }
+    },
+    {
+      "code": "write_probe_passed",
+      "status": "passed",
+      "messageKey": "figma.preflight.write_probe_passed",
+      "safeDetails": {
+        "probeNodeName": "OD preflight probe",
+        "retryable": false
+      }
+    }
+  ]
+}

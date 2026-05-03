@@ -1,4 +1,5 @@
 import type { ChatMessage } from './chat';
+import type { FigmaPreflightSummary } from '../figma-preflight';
 
 export type ProjectKind =
   | 'prototype'
@@ -113,6 +114,7 @@ export interface ProjectMetadata {
   // continue to deserialize unchanged.
   figmaTarget?: FigmaTarget;
   figmaOutputSettings?: FigmaOutputSettings;
+  figmaPreflight?: FigmaPreflightSummary;
 }
 
 export interface Project {

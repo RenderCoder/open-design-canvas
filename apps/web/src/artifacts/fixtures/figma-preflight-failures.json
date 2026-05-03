@@ -1,0 +1,224 @@
+[
+  {
+    "kind": "figma_preflight",
+    "overallStatus": "not_configured",
+    "lastCheckedAt": "2026-05-03T04:31:00.000Z",
+    "canGenerate": false,
+    "userAction": "install_codex",
+    "target": {
+      "mode": "existing-file"
+    },
+    "steps": [
+      {
+        "code": "codex_cli_unavailable",
+        "status": "failed",
+        "messageKey": "figma.preflight.codex_cli_unavailable",
+        "userAction": "install_codex",
+        "safeDetails": {
+          "docsUrl": "https://developers.openai.com/codex/cli"
+        }
+      }
+    ]
+  },
+  {
+    "kind": "figma_preflight",
+    "overallStatus": "not_configured",
+    "lastCheckedAt": "2026-05-03T04:32:00.000Z",
+    "canGenerate": false,
+    "userAction": "add_figma_mcp",
+    "target": {
+      "mode": "existing-file"
+    },
+    "steps": [
+      {
+        "code": "figma_mcp_not_added",
+        "status": "failed",
+        "messageKey": "figma.preflight.figma_mcp_not_added",
+        "userAction": "add_figma_mcp",
+        "safeDetails": {
+          "command": "codex mcp add figma --url https://mcp.figma.com/mcp",
+          "expectedMcpUrl": "https://mcp.figma.com/mcp"
+        }
+      }
+    ]
+  },
+  {
+    "kind": "figma_preflight",
+    "overallStatus": "not_configured",
+    "lastCheckedAt": "2026-05-03T04:33:00.000Z",
+    "canGenerate": false,
+    "userAction": "fix_mcp_url",
+    "target": {
+      "mode": "existing-file"
+    },
+    "steps": [
+      {
+        "code": "figma_mcp_url_invalid",
+        "status": "failed",
+        "messageKey": "figma.preflight.figma_mcp_url_invalid",
+        "userAction": "fix_mcp_url",
+        "safeDetails": {
+          "expectedMcpUrl": "https://mcp.figma.com/mcp",
+          "actualMcpUrlHost": "example.invalid"
+        }
+      }
+    ]
+  },
+  {
+    "kind": "figma_preflight",
+    "overallStatus": "auth_required",
+    "lastCheckedAt": "2026-05-03T04:34:00.000Z",
+    "canGenerate": false,
+    "userAction": "authorize_figma",
+    "target": {
+      "mode": "existing-file"
+    },
+    "steps": [
+      {
+        "code": "auth_required",
+        "status": "failed",
+        "messageKey": "figma.preflight.auth_required",
+        "userAction": "authorize_figma",
+        "safeDetails": {
+          "errorClass": "auth",
+          "retryable": true
+        }
+      }
+    ]
+  },
+  {
+    "kind": "figma_preflight",
+    "overallStatus": "auth_required",
+    "lastCheckedAt": "2026-05-03T04:35:00.000Z",
+    "canGenerate": false,
+    "userAction": "authorize_figma",
+    "target": {
+      "mode": "existing-file"
+    },
+    "steps": [
+      {
+        "code": "user_cancelled",
+        "status": "failed",
+        "messageKey": "figma.preflight.user_cancelled",
+        "userAction": "authorize_figma",
+        "safeDetails": {
+          "errorClass": "auth",
+          "retryable": true
+        }
+      }
+    ]
+  },
+  {
+    "kind": "figma_preflight",
+    "overallStatus": "target_invalid",
+    "lastCheckedAt": "2026-05-03T04:36:00.000Z",
+    "canGenerate": false,
+    "userAction": "choose_valid_target",
+    "target": {
+      "mode": "existing-file"
+    },
+    "steps": [
+      {
+        "code": "target_url_invalid",
+        "status": "failed",
+        "messageKey": "figma.preflight.target_url_invalid",
+        "userAction": "choose_valid_target",
+        "safeDetails": {
+          "errorClass": "invalid_target"
+        }
+      }
+    ]
+  },
+  {
+    "kind": "figma_preflight",
+    "overallStatus": "read_blocked",
+    "lastCheckedAt": "2026-05-03T04:37:00.000Z",
+    "canGenerate": false,
+    "userAction": "request_file_access",
+    "target": {
+      "mode": "existing-file",
+      "fileKeyRedacted": "demo...file"
+    },
+    "steps": [
+      {
+        "code": "file_unreadable",
+        "status": "failed",
+        "messageKey": "figma.preflight.file_unreadable",
+        "userAction": "request_file_access",
+        "safeDetails": {
+          "fileKeyRedacted": "demo...file",
+          "errorClass": "permission"
+        }
+      }
+    ]
+  },
+  {
+    "kind": "figma_preflight",
+    "overallStatus": "write_blocked",
+    "lastCheckedAt": "2026-05-03T04:38:00.000Z",
+    "canGenerate": false,
+    "userAction": "request_edit_access",
+    "target": {
+      "mode": "existing-file",
+      "fileKeyRedacted": "demo...file"
+    },
+    "steps": [
+      {
+        "code": "edit_permission_missing",
+        "status": "failed",
+        "messageKey": "figma.preflight.edit_permission_missing",
+        "userAction": "request_edit_access",
+        "safeDetails": {
+          "fileKeyRedacted": "demo...file",
+          "errorClass": "permission"
+        }
+      }
+    ]
+  },
+  {
+    "kind": "figma_preflight",
+    "overallStatus": "write_blocked",
+    "lastCheckedAt": "2026-05-03T04:39:00.000Z",
+    "canGenerate": false,
+    "userAction": "retry",
+    "target": {
+      "mode": "existing-file",
+      "fileKeyRedacted": "demo...file"
+    },
+    "steps": [
+      {
+        "code": "write_probe_failed",
+        "status": "failed",
+        "messageKey": "figma.preflight.write_probe_failed",
+        "userAction": "retry",
+        "safeDetails": {
+          "probeNodeName": "OD preflight probe",
+          "errorClass": "unknown",
+          "retryable": true
+        }
+      }
+    ]
+  },
+  {
+    "kind": "figma_preflight",
+    "overallStatus": "failed",
+    "lastCheckedAt": "2026-05-03T04:40:00.000Z",
+    "canGenerate": false,
+    "userAction": "retry",
+    "target": {
+      "mode": "existing-file"
+    },
+    "steps": [
+      {
+        "code": "unknown_error",
+        "status": "failed",
+        "messageKey": "figma.preflight.unknown_error",
+        "userAction": "retry",
+        "safeDetails": {
+          "errorClass": "unknown",
+          "retryable": true
+        }
+      }
+    ]
+  }
+]

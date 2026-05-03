@@ -1,5 +1,6 @@
 export * from './common';
 export * from './errors';
+export * from './figma-preflight';
 export * from './figma-result';
 export * from './tasks';
 export * from './api/artifacts';
