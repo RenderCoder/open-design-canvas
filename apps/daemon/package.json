@@ -23,7 +23,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json && tsc -p tsconfig.sidecar.json",
+    "build": "pnpm --filter @open-design/contracts build && tsc -p tsconfig.json && tsc -p tsconfig.sidecar.json",
     "daemon": "pnpm run build && node dist/cli.js --no-open",
     "dev": "pnpm run build && node dist/cli.js --no-open",
     "start": "pnpm run build && node dist/cli.js",

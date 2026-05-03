@@ -322,6 +322,18 @@ async function runLoggedCommand(request: {
   });
 }
 
+async function buildDaemonCli(config: ToolDevConfig, logHandle: FileHandle): Promise<void> {
+  await logHandle.write(`\n[tools-dev] building daemon CLI at ${new Date().toISOString()}\n`);
+  const invocation = createPackageManagerInvocation(["--filter", "@open-design/daemon", "build"], process.env);
+  await runLoggedCommand({
+    args: invocation.args,
+    command: invocation.command,
+    cwd: config.workspaceRoot,
+    env: process.env,
+    logFd: logHandle.fd,
+  });
+}
+
 function createAppStamp(config: ToolDevConfig, appName: ToolDevAppName) {
   const currentAppConfig = appConfig(config, appName);
   const stamp = {
@@ -406,6 +418,7 @@ async function spawnDaemonRuntime(config: ToolDevConfig, options: CliOptions): P
 
   try {
     await logHandle.write(`\n[tools-dev] launching daemon at ${new Date().toISOString()}\n`);
+    await buildDaemonCli(config, logHandle);
     return await spawnSidecarRuntime({
       appName: APP_KEYS.DAEMON,
       config,

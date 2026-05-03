@@ -4,20 +4,26 @@
   "private": true,
   "type": "module",
   "description": "Shared pure TypeScript contracts for the Open Design web/daemon boundary.",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./src/index.ts",
       "browser": "./src/index.browser.ts",
-      "default": "./src/index.ts"
+      "default": "./dist/index.js"
     },
     "./prompts/system": {
       "types": "./src/prompts/system.ts",
       "browser": "./src/prompts/system.browser.ts",
-      "default": "./src/prompts/system.ts"
+      "default": "./dist/prompts/system.js"
     }
   },
-  "types": "./src/index.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
+    "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
