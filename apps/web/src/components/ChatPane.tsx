@@ -8,7 +8,9 @@ import type {
   ChatMessage,
   Conversation,
   FigmaOutputSettings,
+  FigmaPreflightSummary,
   FigmaTarget,
+  Project,
   ProjectFile,
 } from '../types';
 import { dayKey, dayLabel, exactDateTime, messageTime, relativeTimeLong } from '../utils/chatTime';
@@ -63,10 +65,12 @@ interface Props {
   onStop: () => void;
   figmaTarget?: FigmaTarget;
   figmaOutputSettings?: FigmaOutputSettings;
+  figmaPreflight?: FigmaPreflightSummary;
   onFigmaTargetChange?: (next: {
     figmaTarget: FigmaTarget;
     figmaOutputSettings: FigmaOutputSettings;
   }) => void;
+  onProjectUpdate?: (project: Project) => void;
   figmaDesignSystemTitle?: string | null;
   figmaTargetEnabled?: boolean;
   // Click-to-open chain: passes a basename up to ProjectView, which sets
@@ -107,7 +111,9 @@ export function ChatPane({
   onStop,
   figmaTarget,
   figmaOutputSettings,
+  figmaPreflight,
   onFigmaTargetChange,
+  onProjectUpdate,
   figmaDesignSystemTitle,
   figmaTargetEnabled,
   onRequestOpenFile,
@@ -434,7 +440,9 @@ export function ChatPane({
             onStop={onStop}
             figmaTarget={figmaTarget}
             figmaOutputSettings={figmaOutputSettings}
+            figmaPreflight={figmaPreflight}
             onFigmaTargetChange={onFigmaTargetChange}
+            onProjectUpdate={onProjectUpdate}
             figmaDesignSystemTitle={figmaDesignSystemTitle}
             figmaTargetEnabled={figmaTargetEnabled}
             onOpenSettings={onOpenSettings}

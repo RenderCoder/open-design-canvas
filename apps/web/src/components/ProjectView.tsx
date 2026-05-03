@@ -1180,7 +1180,9 @@ export function ProjectView({
           onStop={handleStop}
           figmaTarget={project.metadata?.figmaTarget}
           figmaOutputSettings={project.metadata?.figmaOutputSettings}
+          figmaPreflight={project.metadata?.figmaPreflight}
           onFigmaTargetChange={handleFigmaTargetChange}
+          onProjectUpdate={onProjectChange}
           figmaDesignSystemTitle={activeDesignSystemTitle}
           figmaTargetEnabled={figmaTargetEnabled}
           onRequestOpenFile={requestOpenFile}

@@ -10,8 +10,10 @@ import type { Dict } from '../i18n/types';
 import { projectRawUrl, uploadProjectFiles } from "../providers/registry";
 import type {
   ChatAttachment,
+  FigmaPreflightSummary,
   FigmaOutputSettings,
   FigmaTarget,
+  Project,
   ProjectFile,
 } from "../types";
 import {
@@ -20,6 +22,7 @@ import {
   normalizeFigmaTargetDraft,
   type FigmaTargetDraft,
 } from './FigmaTargetFields';
+import { FigmaMcpAuthorizationWizard } from './FigmaMcpAuthorizationWizard';
 import { Icon } from "./Icon";
 
 type TranslateFn = (key: keyof Dict, vars?: Record<string, string | number>) => string;
@@ -37,10 +40,12 @@ interface Props {
   onStop: () => void;
   figmaTarget?: FigmaTarget;
   figmaOutputSettings?: FigmaOutputSettings;
+  figmaPreflight?: FigmaPreflightSummary;
   onFigmaTargetChange?: (next: {
     figmaTarget: FigmaTarget;
     figmaOutputSettings: FigmaOutputSettings;
   }) => void;
+  onProjectUpdate?: (project: Project) => void;
   figmaDesignSystemTitle?: string | null;
   figmaTargetEnabled?: boolean;
   // Opens the global settings dialog (CLI / model / agent picker). The
@@ -77,7 +82,9 @@ export const ChatComposer = forwardRef<ChatComposerHandle, Props>(
       onStop,
       figmaTarget,
       figmaOutputSettings,
+      figmaPreflight,
       onFigmaTargetChange,
+      onProjectUpdate,
       figmaDesignSystemTitle,
       figmaTargetEnabled = false,
       onOpenSettings,
@@ -289,6 +296,9 @@ export const ChatComposer = forwardRef<ChatComposerHandle, Props>(
         : normalizedFigmaDraft?.target.fileUrl
           ? t('chat.figmaTargetExisting')
           : t('chat.figmaTargetUnset');
+    const figmaGenerationBlocked =
+      figmaTargetEnabled && !figmaPreflight?.canGenerate;
+    const sendDisabled = !draft.trim() || figmaGenerationBlocked;
 
     // The @-picker treats the project listing as path-shaped (path + size).
     // ProjectFile.path is optional, so fall back to .name for the legacy
@@ -447,29 +457,45 @@ export const ChatComposer = forwardRef<ChatComposerHandle, Props>(
                 className="composer-send"
                 data-testid="chat-send"
                 onClick={() => void submit()}
-                disabled={!draft.trim()}
+                disabled={sendDisabled}
+                title={
+                  figmaGenerationBlocked
+                    ? t('figmaWizard.sendBlockedTitle')
+                    : undefined
+                }
               >
                 <Icon name="send" size={13} />
-                <span>{t('chat.send')}</span>
+                <span>
+                  {figmaGenerationBlocked ? t('figmaWizard.sendBlocked') : t('chat.send')}
+                </span>
               </button>
             )}
           </div>
         </div>
         {figmaTargetEnabled && figmaOpen ? (
-          <FigmaTargetFields
-            compact
-            value={figmaDraft}
-            onChange={(next) => {
-              setFigmaDraft(next);
-              const normalized = normalizeFigmaTargetDraft(next);
-              if (!normalized) return;
-              onFigmaTargetChange?.({
-                figmaTarget: normalized.target,
-                figmaOutputSettings: normalized.outputSettings,
-              });
-            }}
-            designSystemTitle={figmaDesignSystemTitle}
-          />
+          <>
+            <FigmaTargetFields
+              compact
+              value={figmaDraft}
+              onChange={(next) => {
+                setFigmaDraft(next);
+                const normalized = normalizeFigmaTargetDraft(next);
+                if (!normalized) return;
+                onFigmaTargetChange?.({
+                  figmaTarget: normalized.target,
+                  figmaOutputSettings: normalized.outputSettings,
+                });
+              }}
+              designSystemTitle={figmaDesignSystemTitle}
+            />
+            <FigmaMcpAuthorizationWizard
+              compact
+              projectId={projectId}
+              target={normalizedFigmaDraft?.target}
+              preflight={figmaPreflight}
+              onProjectUpdate={onProjectUpdate}
+            />
+          </>
         ) : null}
         {uploadError ? <span className="composer-hint">{uploadError}</span> : null}
         <span className="composer-hint">{t('chat.composerHint')}</span>

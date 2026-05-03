@@ -1995,9 +1995,214 @@ code {
   color: var(--text-muted);
   font-size: 11px;
 }
+.figma-mcp-wizard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-panel);
+}
+.figma-mcp-wizard.compact {
+  margin: 8px 10px 0;
+}
+.figma-mcp-wizard-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.figma-mcp-wizard h3 {
+  margin: 2px 0 3px;
+  font-size: 13px;
+  line-height: 1.25;
+  color: var(--text-strong);
+}
+.figma-mcp-wizard p {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+.figma-mcp-kicker {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.figma-mcp-status {
+  flex: 0 0 auto;
+  padding: 3px 7px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 650;
+  color: var(--text-muted);
+  background: var(--bg-subtle);
+}
+.figma-mcp-status.ready {
+  border-color: color-mix(in srgb, var(--green) 50%, var(--border));
+  color: var(--green);
+  background: color-mix(in srgb, var(--green) 10%, var(--bg-panel));
+}
+.figma-mcp-status.blocked {
+  border-color: color-mix(in srgb, var(--amber) 50%, var(--border));
+  color: var(--amber);
+  background: color-mix(in srgb, var(--amber) 10%, var(--bg-panel));
+}
+.figma-mcp-target {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 7px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-subtle);
+  font-size: 11px;
+}
+.figma-mcp-target span,
+.figma-mcp-target small {
+  color: var(--text-muted);
+}
+.figma-mcp-target strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-strong);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.figma-mcp-steps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.figma-mcp-step {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 7px;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-subtle);
+}
+.figma-mcp-step-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--bg-panel);
+}
+.figma-mcp-step strong {
+  display: block;
+  font-size: 11.5px;
+  line-height: 1.25;
+  color: var(--text-strong);
+}
+.figma-mcp-step small {
+  display: block;
+  margin-top: 2px;
+  font-size: 10.5px;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+.figma-mcp-step.passed .figma-mcp-step-icon {
+  border-color: color-mix(in srgb, var(--green) 45%, var(--border));
+  color: var(--green);
+}
+.figma-mcp-step.action .figma-mcp-step-icon,
+.figma-mcp-step.running .figma-mcp-step-icon {
+  border-color: color-mix(in srgb, var(--amber) 50%, var(--border));
+  color: var(--amber);
+}
+.figma-mcp-step.failed .figma-mcp-step-icon {
+  border-color: color-mix(in srgb, var(--red) 50%, var(--border));
+  color: var(--red);
+}
+.figma-mcp-probe,
+.figma-mcp-blocker {
+  padding: 7px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+.figma-mcp-probe {
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  background: var(--bg-subtle);
+}
+.figma-mcp-blocker {
+  border: 1px solid color-mix(in srgb, var(--amber) 45%, var(--border));
+  color: var(--text);
+  background: color-mix(in srgb, var(--amber) 9%, var(--bg-panel));
+}
+.figma-mcp-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.figma-mcp-actions button,
+.figma-mcp-command button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.figma-mcp-command {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: center;
+}
+.figma-mcp-command code {
+  min-width: 0;
+  overflow: hidden;
+  padding: 7px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-subtle);
+  color: var(--text);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.figma-mcp-details {
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+.figma-mcp-details summary {
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+.figma-mcp-details pre {
+  max-height: 140px;
+  overflow: auto;
+  margin: 6px 0 0;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  font-size: 10.5px;
+}
 @media (max-width: 560px) {
   .figma-mode-grid,
-  .figma-target-row {
+  .figma-target-row,
+  .figma-mcp-steps,
+  .figma-mcp-target,
+  .figma-mcp-command {
     grid-template-columns: 1fr;
   }
 }
