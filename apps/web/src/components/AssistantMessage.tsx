@@ -112,7 +112,16 @@ export function AssistantMessage({
             );
           }
           if (b.kind === 'status') return <StatusPill key={i} label={b.label} detail={b.detail} />;
-          if (b.kind === 'figma-result') return <FigmaResultCard key={i} result={b.result} />;
+          if (b.kind === 'figma-result') {
+            return (
+              <FigmaResultCard
+                key={i}
+                result={b.result}
+                projectId={projectId}
+                onRequestOpenFile={onRequestOpenFile}
+              />
+            );
+          }
           return null;
         })}
         {!streaming && produced.length > 0 && projectId ? (

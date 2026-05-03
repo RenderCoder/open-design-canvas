@@ -3550,6 +3550,10 @@ code {
 }
 .df-row:hover { background: var(--bg-subtle); }
 .df-row.active { background: var(--blue-bg); color: var(--text); }
+.df-row.highlighted {
+  background: var(--green-bg);
+  box-shadow: inset 3px 0 0 var(--green);
+}
 .df-row.active .df-row-name { color: var(--text-strong); }
 .df-row-icon {
   width: 32px;
@@ -4742,6 +4746,46 @@ code {
 .figma-result-muted {
   color: var(--text-muted);
   font-size: 12px;
+}
+.figma-result-snapshot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--green-border);
+  border-radius: var(--radius-sm);
+  background: var(--green-bg);
+}
+.figma-result-snapshot-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.figma-result-snapshot-copy strong,
+.figma-result-snapshot-copy span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.figma-result-snapshot-copy strong {
+  color: var(--text-strong);
+  font-size: 12.5px;
+}
+.figma-result-snapshot-copy span:last-child {
+  color: var(--text-muted);
+  font-size: 11.5px;
+}
+.figma-result-snapshot-actions {
+  flex: none;
+  display: flex;
+  gap: 6px;
+}
+.figma-result-snapshot-actions .ghost,
+.figma-result-snapshot-actions .ghost-link {
+  font-size: 11px;
+  padding: 4px 9px;
 }
 .figma-result-checks {
   display: flex;

@@ -111,6 +111,7 @@ export function ProjectView({
   const [artifact, setArtifact] = useState<Artifact | null>(null);
   const [filesRefresh, setFilesRefresh] = useState(0);
   const [projectFiles, setProjectFiles] = useState<ProjectFile[]>([]);
+  const [highlightedFileName, setHighlightedFileName] = useState<string | null>(null);
   // The persisted set of open tabs + active tab. Persisted via PUT on every
   // change; loaded once when the project mounts.
   const [openTabsState, setOpenTabsState] = useState<OpenTabsState>({
@@ -780,6 +781,15 @@ export function ProjectView({
           // chips.
           void refreshProjectFiles().then((nextFiles) => {
             const produced = nextFiles.filter((f) => !beforeFileNames.has(f.name));
+            const latestProduced = [...produced].sort((a, b) => b.mtime - a.mtime)[0];
+            if (latestProduced) {
+              setHighlightedFileName(latestProduced.name);
+              window.setTimeout(() => {
+                setHighlightedFileName((current) =>
+                  current === latestProduced.name ? null : current,
+                );
+              }, 10_000);
+            }
             setMessages((curr) => {
               const updated = curr.map((m) =>
                 m.id === assistantId
@@ -1233,6 +1243,7 @@ export function ProjectView({
           onExportAsPptx={handleExportAsPptx}
           streaming={streaming}
           openRequest={openRequest}
+          highlightedFileName={highlightedFileName}
           tabsState={openTabsState}
           onTabsStateChange={persistTabsState}
         />

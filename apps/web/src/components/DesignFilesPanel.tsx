@@ -17,6 +17,7 @@ interface Props {
   onUploadFiles: (files: File[]) => void;
   onPaste: () => void;
   onNewSketch: () => void;
+  highlightedFileName?: string | null;
 }
 
 type Section = 'pages' | 'scripts' | 'images' | 'sketches' | 'other';
@@ -47,6 +48,7 @@ export function DesignFilesPanel({
   onUploadFiles,
   onPaste,
   onNewSketch,
+  highlightedFileName,
 }: Props) {
   const t = useT();
   const [refreshing, setRefreshing] = useState(false);
@@ -164,12 +166,14 @@ export function DesignFilesPanel({
                 {grouped[section].map((f) => {
                   const active = preview === f.name;
                   const isHovered = hover === f.name;
+                  const highlighted = highlightedFileName === f.name;
                   return (
                     <button
                       key={f.name}
                       type="button"
                       data-testid={`design-file-row-${f.name}`}
-                      className={`df-row ${active ? 'active' : ''}`}
+                      className={`df-row ${active ? 'active' : ''} ${highlighted ? 'highlighted' : ''}`}
+                      data-highlighted={highlighted ? 'true' : undefined}
                       onMouseEnter={() => setHover(f.name)}
                       onMouseLeave={() => setHover((c) => (c === f.name ? null : c))}
                       onClick={() => setPreview(f.name)}

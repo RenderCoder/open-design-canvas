@@ -21,6 +21,7 @@ interface Props {
   onExportAsPptx?: ((fileName: string) => void) | undefined;
   streaming?: boolean;
   openRequest?: { name: string; nonce: number } | null;
+  highlightedFileName?: string | null;
   // Persisted set of open tabs + active tab. Owned by ProjectView so the
   // daemon's SQLite store can hold the source of truth and survive reloads.
   tabsState: OpenTabsState;
@@ -45,6 +46,7 @@ export function FileWorkspace({
   onExportAsPptx,
   streaming,
   openRequest,
+  highlightedFileName,
   tabsState,
   onTabsStateChange,
 }: Props) {
@@ -370,6 +372,7 @@ export function FileWorkspace({
             onUploadFiles={(picked) => void uploadFiles(picked)}
             onPaste={() => setShowPasteDialog(true)}
             onNewSketch={startNewSketch}
+            highlightedFileName={highlightedFileName}
           />
         ) : isActiveSketch && activeSketch && activeFile ? (
           activeSketch.loaded ? (

@@ -6,12 +6,15 @@ import type {
 } from '@open-design/contracts';
 
 import { Icon } from './Icon';
+import { projectFileUrl } from '../providers/registry';
 
 interface Props {
   result: FigmaNativeResult;
+  projectId?: string | null;
+  onRequestOpenFile?: (name: string) => void;
 }
 
-export function FigmaResultCard({ result }: Props) {
+export function FigmaResultCard({ result, projectId, onRequestOpenFile }: Props) {
   const rootFrame = result.rootFrames[0];
   const statusTone = statusToTone(result.status);
   const checks = checkEntries(result);
@@ -80,11 +83,33 @@ export function FigmaResultCard({ result }: Props) {
 
       {result.snapshot ? (
         <div className="figma-result-snapshot">
-          <span className="figma-summary-title">Snapshot</span>
-          <strong>{result.snapshot.fileName ?? humanSnapshotStatus(result.snapshot.status)}</strong>
-          <span>
-            {snapshotDetails(result)}
-          </span>
+          <div className="figma-result-snapshot-copy">
+            <span className="figma-summary-title">Snapshot</span>
+            <strong>{result.snapshot.fileName ?? humanSnapshotStatus(result.snapshot.status)}</strong>
+            <span>
+              {snapshotDetails(result)}
+            </span>
+          </div>
+          {projectId && result.snapshot.fileName ? (
+            <div className="figma-result-snapshot-actions">
+              {onRequestOpenFile ? (
+                <button
+                  type="button"
+                  className="ghost"
+                  onClick={() => onRequestOpenFile(result.snapshot!.fileName!)}
+                >
+                  Open snapshot
+                </button>
+              ) : null}
+              <a
+                className="ghost-link"
+                href={projectFileUrl(projectId, result.snapshot.fileName)}
+                download={result.snapshot.fileName}
+              >
+                Download
+              </a>
+            </div>
+          ) : null}
         </div>
       ) : null}
 

@@ -111,6 +111,44 @@ describe('FigmaResultCard', () => {
     expect(resultWarnings(parsed.result)).toContain('Snapshot below expected minimum width.');
   });
 
+  it('links reported Figma snapshots back to project Design Files', () => {
+    const parsed = normalizeFigmaNativeResult({
+      kind: 'figma_native_result',
+      status: 'completed',
+      checks: {
+        metadata: 'passed',
+        screenshot: 'passed',
+        variables: 'passed',
+        textReadability: 'passed',
+        textOverlap: 'passed',
+      },
+      reusedComponents: [{ name: 'Card' }],
+      snapshot: {
+        status: 'passed',
+        fileName: 'figma-20260503-142530-home-hero-refine.png',
+        projectRelativePath: 'figma-20260503-142530-home-hero-refine.png',
+        pixelWidth: 2800,
+        pixelHeight: 1800,
+        scale: 2,
+        qualityStatus: 'high_resolution',
+      },
+    });
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) throw new Error(parsed.error);
+
+    const markup = renderToStaticMarkup(
+      <FigmaResultCard
+        result={parsed.result}
+        projectId="project-1"
+        onRequestOpenFile={() => undefined}
+      />,
+    );
+
+    expect(markup).toContain('Open snapshot');
+    expect(markup).toContain('href="/api/projects/project-1/raw/figma-20260503-142530-home-hero-refine.png"');
+    expect(markup).toContain('download="figma-20260503-142530-home-hero-refine.png"');
+  });
+
   it('renders a figma_result event inside an assistant message', () => {
     const parsed = normalizeFigmaNativeResult(validFixture);
     expect(parsed.ok).toBe(true);
