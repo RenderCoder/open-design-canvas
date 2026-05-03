@@ -54,7 +54,8 @@ A single real editable Figma-native product screen or composed view. Not HTML. N
 7. Validate with metadata, screenshot and variable defs.
 8. Run canvas lint, including the `text-text-overlap` text readability check.
 9. If text overlap fails, attempt repair before delivery and report `textOverlapCheck`.
-10. Return structured result report.
+10. Export one final high-resolution PNG snapshot of the completed root frame with Figma MCP `use_figma` / Plugin API `exportAsync`, then save it to the current project Design Files through `OD_DAEMON_URL` + `OD_PROJECT_ID` `/api/projects/:id/figma/snapshot`.
+11. Return structured result report including `snapshot`.
 
 ## Must not
 
@@ -62,3 +63,5 @@ A single real editable Figma-native product screen or composed view. Not HTML. N
 - Draw everything from primitives when design-system components exist.
 - Use hardcoded random colors without reporting them.
 - Leave default layer names.
+- Use `get_screenshot` or any low-resolution preview as the default process snapshot.
+- Paste base64 snapshot data into the final chat response.

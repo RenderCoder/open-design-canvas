@@ -243,6 +243,14 @@ describe('composeSystemPrompt — figma-native directive', () => {
     expect(out).toContain('text-text-overlap');
     expect(out).toContain('Retry the lint after each repair');
     expect(out).toContain('at most 2 repair attempts');
+    expect(out).toContain('Process snapshot');
+    expect(out).toContain('exportAsync({ format: "PNG", constraint: { type: "SCALE", value: 2 } })');
+    expect(out).toContain('OD_DAEMON_URL');
+    expect(out).toContain('/api/projects/${process.env.OD_PROJECT_ID}/figma/snapshot');
+    expect(out).toContain('Do not paste base64 image data');
+    expect(out).toContain('do not roll back the Figma canvas');
+    expect(out).toContain('"snapshot"');
+    expect(out).toContain('"qualityStatus": "high_resolution"');
     expect(out).toContain('"textReadability": "passed"');
     expect(out).toContain('"textOverlap": "passed"');
     expect(out).toContain('"readabilityCheck"');
@@ -365,6 +373,8 @@ describe('composeSystemPrompt — figma-native directive', () => {
     expect(out).toContain('get_variable_defs');
     expect(out).toContain('Do not emit a final `<artifact>` block for the Figma deliverable');
     expect(out).toContain('textOverlapCheck');
+    expect(out).toContain('exportAsync');
+    expect(out).toContain('/api/projects/${process.env.OD_PROJECT_ID}/figma/snapshot');
     expect(out).toContain('"kind": "figma_native_result"');
   });
 

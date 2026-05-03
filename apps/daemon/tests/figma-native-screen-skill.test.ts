@@ -43,6 +43,9 @@ describe('shipped figma-native-screen skill', () => {
     expect(skill?.body).toContain('use_figma');
     expect(skill?.body).toContain('text-text-overlap');
     expect(skill?.body).toContain('textOverlapCheck');
+    expect(skill?.body).toContain('/api/projects/:id/figma/snapshot');
+    expect(skill?.body).toContain('exportAsync');
+    expect(skill?.body).toContain('including `snapshot`');
     expect(skill?.body).toContain('structured result report');
   });
 });
