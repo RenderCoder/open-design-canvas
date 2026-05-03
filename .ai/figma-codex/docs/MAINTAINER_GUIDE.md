@@ -170,6 +170,48 @@ When adding a new Figma MCP event mapping:
    variable check.
 4. Test with a mocked Codex JSONL fixture before relying on real Figma access.
 
+## Figma process snapshot archive
+
+Figma-native completion must archive one high-resolution PNG process snapshot
+after the final validation pass. Keep this path tied to the existing project
+file store and Design Files panel; do not create a second snapshot filesystem or
+a Figma-only gallery.
+
+Implementation contract:
+
+- The agent exports raw PNG bytes with Figma MCP / Plugin API `exportAsync`,
+  normally through `use_figma`, and saves the bytes through
+  `POST /api/projects/:id/figma/snapshot`.
+- The daemon owns filename allocation, slug normalization, PNG IHDR dimension
+  validation, low-resolution rejection, and collision-safe writes.
+- Filenames use `figma-YYYYMMDD-HHmmss-<purpose-slug>.png`, capped to the
+  contract limit. Same-second collisions append `-2`, `-3`, and so on without
+  overwriting older Design Files.
+- Export planning defaults to 2x and targets about 2800px minimum width for
+  narrower frames, while capping the longest edge at 8192px. Any cap-induced
+  degradation must be reported in `snapshot.warnings`.
+- A snapshot failure must not roll back a successful Figma canvas write. Return
+  a `partial` Figma result with `snapshot.status: "failed"` and a clear issue
+  explaining that only the PNG archive failed.
+- Do not use `get_screenshot` as the primary high-resolution archive path. It is
+  validation evidence and can be lower resolution than the editable canvas.
+- Do not place base64 PNG data in chat messages, logs, Beads notes, or result
+  prose. Save the image as a project file and report only the structured
+  `snapshot` object.
+
+Relevant code and tests:
+
+- `apps/daemon/src/figma-snapshot.ts`
+- `packages/contracts/src/figma-result.ts`
+- `packages/contracts/src/api/files.ts`
+- `packages/contracts/src/prompts/figma-native.ts`
+- `apps/web/src/artifacts/figma-result.ts`
+- `apps/web/src/components/FigmaResultCard.tsx`
+- `apps/web/src/components/FileViewer.tsx`
+- `apps/daemon/tests/figma-snapshot.test.ts`
+- `apps/web/src/components/FileViewer.test.tsx`
+- `e2e/tests/figma-native-mocked-flow.test.tsx`
+
 ## Validation matrix
 
 Use the smallest relevant command first:
@@ -184,6 +226,8 @@ Use the smallest relevant command first:
 | Authorization wizard UI | `pnpm --filter @open-design/web test -- FigmaMcpAuthorizationWizard` |
 | Web daemon provider actions | `pnpm --filter @open-design/web test -- registry` |
 | Result parser or card | `pnpm --filter @open-design/web test -- FigmaResultCard` |
+| Figma snapshot export/save route | `pnpm --filter @open-design/daemon test -- figma-snapshot` |
+| Image snapshot zoom and Design Files UI | `pnpm --dir apps/web exec vitest run -c vitest.config.ts src/components/FileViewer.test.tsx src/components/FileWorkspace.test.tsx src/components/FigmaResultCard.test.tsx` |
 | Mocked end-to-end Figma path | `pnpm --filter @open-design/e2e test -- figma-native-mocked-flow.test.tsx` |
 | Shared contracts or broad TS changes | `pnpm typecheck` |
 

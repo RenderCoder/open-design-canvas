@@ -186,6 +186,8 @@ mocked preflight summaries, and redacted fixtures:
 | `use_figma` write probe succeeds | `apps/daemon/tests/figma-preflight.test.ts` verifies `write_probe_passed`, redacted target details, and `canGenerate`; `apps/web/src/components/FigmaMcpAuthorizationWizard.test.tsx` verifies the ready wizard state. |
 | Target change makes preflight stale | `apps/web/src/artifacts/figma-preflight-contract.test.ts`, `apps/web/src/providers/sse.test.ts`, and `apps/daemon/tests/figma-preflight-route.test.ts` verify fingerprint matching and stale-preflight rejection. |
 | Web/Electron fallback action copy | `apps/daemon/tests/figma-preflight.test.ts`, `apps/web/src/providers/registry.test.ts`, and `apps/web/src/components/FigmaMcpAuthorizationWizard.test.tsx` verify `manual_command` responses and copyable command text. |
+| High-resolution snapshot archive | `apps/daemon/tests/figma-snapshot.test.ts` verifies filename timestamps/slugs, collision-safe writes, 2x/min-width export planning, PNG dimension validation, low-resolution rejection, and Design Files listing. |
+| Snapshot inspection UI | `apps/web/src/components/FigmaResultCard.test.tsx`, `apps/web/src/components/FileWorkspace.test.tsx`, and `apps/web/src/components/FileViewer.test.tsx` verify snapshot actions, latest-file highlight, and 25%-1000% image zoom controls. |
 | Mocked end-to-end Figma-native flow | `e2e/tests/figma-native-mocked-flow.test.tsx` parses mocked Codex JSONL with Figma MCP events, renders the result card, and uses redacted fixture data only. |
 
 These tests must not contain OAuth tokens, private file keys, private file URLs,
@@ -213,6 +215,31 @@ customer screenshots, or private design content. Use placeholders such as
   `get_screenshot`, and `get_variable_defs`.
 - Figma plan, seat, permissions, network, and rate limits can still block a real
   smoke test even when local MCP configuration is valid.
+
+## Snapshot archive notes
+
+After the real canvas write and validation checks, Figma-native agents should
+export exactly one high-resolution PNG process snapshot of the final root frame
+or page. This is not the editable deliverable; it is a Design Files archive for
+inspection inside Open Design Canvas.
+
+The preferred export path is Figma MCP / Plugin API `exportAsync` from the final
+root node, usually with `constraint: { type: "SCALE", value: 2 }`. For narrower
+frames, increase the scale so the output is about 2800px wide when possible.
+Keep the longest edge at or below 8192px and report any scale reduction in the
+snapshot warnings.
+
+Save the raw PNG bytes to:
+
+```text
+POST /api/projects/:id/figma/snapshot
+```
+
+with query parameters such as `purpose`, `sourceWidth`, `sourceHeight`,
+`sourceFileKey`, `sourceNodeId`, and `sourceNodeName`. The daemon assigns a
+`figma-YYYYMMDD-HHmmss-<purpose-slug>.png` filename, avoids overwrites, validates
+PNG dimensions, rejects low-resolution output, and returns the structured
+`snapshot` object. Do not paste base64 PNG data into the final report.
 
 ## Optional real Figma smoke test
 

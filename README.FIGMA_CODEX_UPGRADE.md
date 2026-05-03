@@ -123,6 +123,38 @@ Open Design 显示 Figma result card 与 lint report
 
 完成这个闭环后，再扩展 landing、dashboard、mobile flow、canvas critique、design system import、Code Connect 等能力。
 
+## Figma 完成稿快照归档
+
+Figma-native run 完成最终验证后，会把当前完成稿 root frame/page 导出为一张
+高清 PNG 过程稿快照，并保存到当前项目已有的 **Design Files** 中。这个快照
+用于在 Open Design Canvas 后台快速检查结果，不替代可编辑的 Figma 源文件；
+Figma 文件仍然是 frames、components、variables、styles、Auto Layout 和 layer
+names 的 source of truth。
+
+快照文件名使用：
+
+```text
+figma-YYYYMMDD-HHmmss-<purpose-slug>.png
+```
+
+例如 `figma-20260503-142530-home-hero-refine.png`。同名冲突时追加数字后缀，
+不会覆盖旧文件。
+
+清晰度策略：
+
+- 默认走 Figma MCP / Plugin API `exportAsync` 的高清 PNG bytes，不把
+  `get_screenshot` 低清 preview 当作最终过程稿。
+- 默认 2x；窄 frame 会尽量导出到约 2800px 宽。
+- 最长边受 8192px 上限保护，降级会写入 snapshot warning。
+- 如果实际 PNG 尺寸低于最低清晰度 guard，结果会标记 snapshot failed/partial，
+  不会静默保存低清图当作成功。
+
+查看方式：
+
+- Figma result card 显示 snapshot 文件名、尺寸、倍率和打开/下载动作。
+- Design Files 会显示新 PNG，并短时间高亮最新生成文件。
+- 普通图片查看器支持 25% 到 1000% 缩放、重置和滚动查看细节。
+
 ## 用户与维护文档
 
 普通用户主路径是在 App 里选择 Figma-native skill 和 Figma target，然后按
@@ -132,7 +164,7 @@ Open Design 显示 Figma result card 与 lint report
 
 - 新用户先读 [Figma-native user guide](.ai/figma-codex/docs/USER_GUIDE.md)：包含 UI-first 授权向导、mocked flow、第一次 canvas generation、写探针清理、result card 解读和 troubleshooting。
 - Figma/Codex 连接细节见 [Figma MCP setup](.ai/figma-codex/docs/FIGMA_MCP_SETUP.md)：这些 CLI 命令主要用于开发者诊断、真实 smoke test，或向导要求手动 setup 时的 fallback。
-- 贡献者扩展 skills、design systems、preflight contract、result schema、parser 或 UI 时读 [Maintainer guide](.ai/figma-codex/docs/MAINTAINER_GUIDE.md)。
+- 贡献者扩展 skills、design systems、preflight contract、result schema、snapshot archive、parser 或 UI 时读 [Maintainer guide](.ai/figma-codex/docs/MAINTAINER_GUIDE.md)。
 - 发布前的授权、商标和第三方归属边界见 [license / trademark / attribution notes](.ai/figma-codex/docs/LICENSE_TRADEMARK_ATTRIBUTION.md)。
 - 发布候选版本前检查 [release readiness checklist](.ai/figma-codex/docs/RELEASE_READINESS.md)：包含 pass/defer 状态、验证矩阵、known limitations 和 roadmap。
 - 没有 Figma credentials 的贡献者可以运行：

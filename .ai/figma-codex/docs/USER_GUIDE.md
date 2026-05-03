@@ -135,6 +135,50 @@ The Figma result card summarizes the structured `figma_native_result` report:
 Treat a completed result with known issues as a reviewable draft, not as a
 silent pass. The result card should make remaining work explicit.
 
+## Process snapshots in Design Files
+
+After a Figma-native run completes its final validation pass, the agent must
+archive one high-resolution PNG process snapshot of the completed root
+frame/page. The snapshot is saved in the current project's existing **Design
+Files** panel and appears as a normal project image file, so you can open it
+without switching back to Figma.
+
+Snapshot names follow this pattern:
+
+```text
+figma-YYYYMMDD-HHmmss-<purpose-slug>.png
+```
+
+The purpose slug comes from the page, feature, or edit summary, for example
+`figma-20260503-142530-home-hero-refine.png`. If a file with the same name
+already exists, Open Design Canvas appends a numeric suffix instead of
+overwriting it.
+
+The PNG is a process snapshot for inspection and handoff. It does not replace
+the editable Figma source file. Continue to treat the Figma file as the source
+of truth for editable frames, components, variables, styles, Auto Layout, and
+layer names.
+
+Resolution behavior:
+
+- The default export target is 2x through Figma MCP `exportAsync`, not a low-res
+  `get_screenshot` preview.
+- Narrow frames are scaled up so a typical 1400px-wide design exports near
+  2800px wide.
+- Very large frames may be scaled down to keep the longest edge under the
+  exporter limit; the result card reports this as a snapshot warning.
+- If the exported PNG is below the minimum resolution guard, the run reports a
+  snapshot failure or partial result instead of silently saving a low-res image.
+
+How to inspect a snapshot:
+
+1. Open the file from the Figma result card's **Open snapshot** action or from
+   the **Files from this turn** chips.
+2. Or open **Design Files** and select the highlighted latest PNG row.
+3. Use the image viewer zoom controls to inspect details. Normal images support
+   zoom out, zoom in, and reset from 25% to 1000%; when zoomed in, the preview
+   area scrolls so you can inspect the whole image.
+
 ## Write probe and cleanup
 
 The write-permission check creates or updates one tiny frame named
