@@ -721,6 +721,7 @@ export async function startServer({ port = 7456, returnServer = false } = {}) {
       const preflight = await runFigmaPreflight({
         target,
         checkWriteAccess: request.checkWriteAccess === true,
+        skipWriteProbe: request.skipWriteProbe === true,
       });
       const updated = updateProject(db, project.id, {
         metadata: {

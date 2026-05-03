@@ -175,6 +175,25 @@ describe('runFigmaPreflight', () => {
     assert.ok(runner.calls.some((call) => call.input?.includes('Never modify, delete, or move user-created nodes')));
   });
 
+  it('allows an explicit write-probe skip after read access succeeds', async () => {
+    const runner = configuredRunner();
+
+    const preflight = await runFigmaPreflight({
+      target,
+      skipWriteProbe: true,
+      runner,
+      now: fixedNow,
+    });
+
+    assert.equal(preflight.overallStatus, 'ready');
+    assert.equal(preflight.canGenerate, true);
+    assert.equal(preflight.userAction, 'none');
+    assert.equal(preflight.steps.at(-1)?.code, 'write_probe_skipped');
+    assert.equal(preflight.steps.at(-1)?.status, 'skipped');
+    assert.ok(runner.calls.some((call) => call.input?.includes('get_metadata')));
+    assert.ok(!runner.calls.some((call) => call.input?.includes('ODC MCP Write Probe')));
+  });
+
   it('classifies use_figma edit failures as write permission blockers', async () => {
     const runner = configuredRunner('FAIL permission denied edit access');
 

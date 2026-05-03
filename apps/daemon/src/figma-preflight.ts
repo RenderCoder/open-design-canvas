@@ -47,6 +47,7 @@ type FigmaPreflightStepCode =
   | 'file_unreadable'
   | 'edit_permission_missing'
   | 'write_probe_passed'
+  | 'write_probe_skipped'
   | 'write_probe_failed'
   | 'unknown_error';
 
@@ -155,6 +156,7 @@ const FIGMA_PREFLIGHT_STEP_DEFAULTS = {
   file_unreadable: { overallStatus: 'read_blocked', userAction: 'request_file_access' },
   edit_permission_missing: { overallStatus: 'write_blocked', userAction: 'request_edit_access' },
   write_probe_passed: { overallStatus: 'ready', userAction: 'none' },
+  write_probe_skipped: { overallStatus: 'ready', userAction: 'none' },
   write_probe_failed: { overallStatus: 'write_blocked', userAction: 'retry' },
   unknown_error: { overallStatus: 'failed', userAction: 'retry' },
 } as const satisfies Record<
@@ -169,6 +171,7 @@ export interface FigmaPreflightRunner {
 export interface RunFigmaPreflightOptions {
   target?: FigmaTarget | null;
   checkWriteAccess?: boolean;
+  skipWriteProbe?: boolean;
   runner?: FigmaPreflightRunner;
   now?: () => Date;
   serverName?: string;
@@ -224,6 +227,7 @@ const DEFAULT_RUNNER = new SpawnFigmaPreflightRunner();
 export async function runFigmaPreflight({
   target,
   checkWriteAccess = false,
+  skipWriteProbe = false,
   runner = DEFAULT_RUNNER,
   now = () => new Date(),
   serverName = process.env.ODC_FIGMA_MCP_SERVER || DEFAULT_FIGMA_MCP_SERVER,
@@ -310,6 +314,15 @@ export async function runFigmaPreflight({
     return summarize(steps, parsedTarget.target, checkedAt);
   }
   steps.push(step('file_readable', 'passed', checkedAt, parsedTarget.details));
+
+  if (skipWriteProbe) {
+    steps.push(step('write_probe_skipped', 'skipped', checkedAt, {
+      ...parsedTarget.details,
+      ...writeProbeSafeDetails(),
+      retryable: false,
+    }));
+    return summarize(steps, parsedTarget.target, checkedAt);
+  }
 
   if (!checkWriteAccess) {
     return summarize(steps, parsedTarget.target, checkedAt);
@@ -424,19 +437,21 @@ function summarize(
 ): FigmaPreflightSummary {
   const failed = steps.find((item) => item.status === 'failed');
   const writePassedStep = steps.find((item) => item.code === 'write_probe_passed' && item.status === 'passed');
-  const writePassed = Boolean(writePassedStep);
-  const blocking = failed ?? (writePassed ? undefined : findLastCompletedStep(steps));
-  const code = failed?.code ?? (writePassed ? 'write_probe_passed' : (blocking?.code ?? 'unknown_error'));
+  const writeSkippedStep = steps.find((item) => item.code === 'write_probe_skipped' && item.status === 'skipped');
+  const writeReadyStep = writePassedStep ?? writeSkippedStep;
+  const writeReady = Boolean(writeReadyStep);
+  const blocking = failed ?? (writeReady ? undefined : findLastCompletedStep(steps));
+  const code = failed?.code ?? (writeReadyStep?.code ?? blocking?.code ?? 'unknown_error');
   const defaults = FIGMA_PREFLIGHT_STEP_DEFAULTS[code];
   return defined({
     kind: 'figma_preflight',
-    overallStatus: failed ? defaults.overallStatus : writePassed ? 'ready' : defaults.overallStatus,
+    overallStatus: failed ? defaults.overallStatus : writeReady ? 'ready' : defaults.overallStatus,
     steps,
     target,
     lastCheckedAt,
-    canGenerate: writePassed,
-    userAction: failed ? defaults.userAction : writePassed ? 'none' : defaults.userAction,
-    safeDetails: failed?.safeDetails ?? writePassedStep?.safeDetails ?? blocking?.safeDetails,
+    canGenerate: writeReady,
+    userAction: failed ? defaults.userAction : writeReady ? 'none' : defaults.userAction,
+    safeDetails: failed?.safeDetails ?? writeReadyStep?.safeDetails ?? blocking?.safeDetails,
   }) as FigmaPreflightSummary;
 }
 

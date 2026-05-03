@@ -85,6 +85,21 @@ export function FigmaMcpAuthorizationWizard({
     }
   }
 
+  async function skipWriteProbe() {
+    if (!projectId) return;
+    setBusy('skip-write');
+    try {
+      const result = await runFigmaPreflight(projectId, { target, skipWriteProbe: true });
+      if (result) {
+        setLocalPreflight(result.preflight);
+        onProjectUpdate?.(result.project);
+        setAction(null);
+      }
+    } finally {
+      setBusy(null);
+    }
+  }
+
   async function runAction(kind: 'prepare_mcp_setup' | 'start_mcp_login' | 'poll_mcp_status') {
     if (!projectId) return;
     setBusy(kind);
@@ -217,6 +232,18 @@ export function FigmaMcpAuthorizationWizard({
           <Icon name={busy === 'write' ? 'spinner' : 'check'} size={13} />
           <span>{t('figmaWizard.checkWrite')}</span>
         </button>
+        {canSkipWriteProbe(currentPreflight) ? (
+          <button
+            type="button"
+            className="secondary"
+            onClick={() => void skipWriteProbe()}
+            disabled={!projectId || busy != null}
+            title={t('figmaWizard.skipWriteTitle')}
+          >
+            <Icon name={busy === 'skip-write' ? 'spinner' : 'check'} size={13} />
+            <span>{t('figmaWizard.skipWrite')}</span>
+          </button>
+        ) : null}
       </div>
 
       {action?.command ? (
@@ -284,11 +311,15 @@ function statusForStep(
       ? 'action'
       : 'failed';
   }
-  if (preflight.steps.some((step) => codes.includes(step.code) && step.status === 'passed')) {
+  if (preflight.steps.some((step) => codes.includes(step.code) && isCompletedStepStatus(step.status))) {
     return 'passed';
   }
   if (key === 'write' && preflight.steps.some((step) => step.code === 'file_readable')) return 'action';
   return 'pending';
+}
+
+function isCompletedStepStatus(status: FigmaPreflightSummary['steps'][number]['status']): boolean {
+  return status === 'passed' || status === 'skipped';
 }
 
 function codesForStep(key: StepKey): string[] {
@@ -302,10 +333,20 @@ function codesForStep(key: StepKey): string[] {
     case 'read':
       return ['target_url_invalid', 'file_readable', 'file_unreadable'];
     case 'write':
-      return ['edit_permission_missing', 'write_probe_failed', 'write_probe_passed'];
+      return ['edit_permission_missing', 'write_probe_failed', 'write_probe_passed', 'write_probe_skipped'];
     case 'ready':
-      return ['write_probe_passed'];
+      return ['write_probe_passed', 'write_probe_skipped'];
   }
+}
+
+function canSkipWriteProbe(preflight: FigmaPreflightSummary | undefined): boolean {
+  return Boolean(
+    preflight &&
+    !preflight.canGenerate &&
+    preflight.userAction === 'none' &&
+    preflight.steps.some((step) => step.code === 'file_readable' && step.status === 'passed') &&
+    !preflight.steps.some((step) => step.status === 'failed'),
+  );
 }
 
 function primaryAction(

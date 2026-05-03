@@ -428,6 +428,8 @@ export interface Dict {
   'figmaWizard.openAuthorization': string;
   'figmaWizard.recheck': string;
   'figmaWizard.checkWrite': string;
+  'figmaWizard.skipWrite': string;
+  'figmaWizard.skipWriteTitle': string;
   'figmaWizard.copyCommand': string;
   'figmaWizard.copied': string;
   'figmaWizard.waitingAuth': string;

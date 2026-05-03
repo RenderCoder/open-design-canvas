@@ -12,6 +12,7 @@ export const FIGMA_PREFLIGHT_STEP_CODES = [
   'file_unreadable',
   'edit_permission_missing',
   'write_probe_passed',
+  'write_probe_skipped',
   'write_probe_failed',
   'unknown_error',
 ] as const;
@@ -181,6 +182,10 @@ export const FIGMA_PREFLIGHT_STEP_DEFAULTS = {
     overallStatus: 'ready',
     userAction: 'none',
   },
+  write_probe_skipped: {
+    overallStatus: 'ready',
+    userAction: 'none',
+  },
   write_probe_failed: {
     overallStatus: 'write_blocked',
     userAction: 'retry',
@@ -277,7 +282,10 @@ export function validateFigmaPreflightForTarget(
     preflight?.kind !== 'figma_preflight' ||
     preflight.overallStatus !== 'ready' ||
     preflight.canGenerate !== true ||
-    !preflight.steps.some((step) => step.code === 'write_probe_passed' && step.status === 'passed')
+    !preflight.steps.some((step) =>
+      (step.code === 'write_probe_passed' && step.status === 'passed') ||
+      (step.code === 'write_probe_skipped' && step.status === 'skipped')
+    )
   ) {
     return { ok: false, reason: 'not_ready', fingerprint: targetFingerprint };
   }

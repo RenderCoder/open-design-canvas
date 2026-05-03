@@ -29,6 +29,7 @@ const REQUIRED_CODES = [
   'file_unreadable',
   'edit_permission_missing',
   'write_probe_passed',
+  'write_probe_skipped',
   'write_probe_failed',
   'unknown_error',
 ] as const satisfies readonly FigmaPreflightStepCode[];
@@ -50,9 +51,11 @@ describe('Figma preflight contract', () => {
       ]),
     );
     expect(isFigmaPreflightStepCode('write_probe_passed')).toBe(true);
+    expect(isFigmaPreflightStepCode('write_probe_skipped')).toBe(true);
     expect(isFigmaPreflightStepCode('oauth_token_expired')).toBe(false);
     expect(isFigmaPreflightBlockingStepCode('write_probe_failed')).toBe(true);
     expect(isFigmaPreflightBlockingStepCode('write_probe_passed')).toBe(false);
+    expect(isFigmaPreflightBlockingStepCode('write_probe_skipped')).toBe(false);
   });
 
   it('keeps message semantics separate from prose strings', () => {
@@ -110,6 +113,10 @@ describe('Figma preflight contract', () => {
       overallStatus: 'ready',
       userAction: 'none',
     });
+    expect(FIGMA_PREFLIGHT_STEP_DEFAULTS.write_probe_skipped).toEqual({
+      overallStatus: 'ready',
+      userAction: 'none',
+    });
   });
 
   it('validates ready preflight against the exact Figma target fingerprint', () => {
@@ -134,6 +141,27 @@ describe('Figma preflight contract', () => {
     expect(validateFigmaPreflightForTarget(target, undefined)).toMatchObject({
       ok: false,
       reason: 'missing_preflight',
+    });
+  });
+
+  it('accepts an explicit user-acknowledged write-probe skip for the matching target', () => {
+    const preflight = {
+      ...(readyFixture as FigmaPreflightSummary),
+      steps: [
+        { code: 'figma_mcp_available', status: 'passed', messageKey: 'figma.preflight.figma_mcp_available' },
+        { code: 'file_readable', status: 'passed', messageKey: 'figma.preflight.file_readable' },
+        { code: 'write_probe_skipped', status: 'skipped', messageKey: 'figma.preflight.write_probe_skipped' },
+      ],
+    } satisfies FigmaPreflightSummary;
+    const target = {
+      mode: 'existing-file' as const,
+      fileUrl: `https://figma.com/design/${preflight.target.fileKey}/Demo`,
+      pageName: preflight.target.pageName,
+    };
+
+    expect(validateFigmaPreflightForTarget(target, preflight)).toMatchObject({
+      ok: true,
+      reason: 'ready',
     });
   });
 });

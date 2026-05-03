@@ -403,6 +403,9 @@ export const zhTW: Dict = {
   'figmaWizard.openAuthorization': 'Open authorization',
   'figmaWizard.recheck': 'I finished, recheck',
   'figmaWizard.checkWrite': 'Check write permission',
+  'figmaWizard.skipWrite': 'Skip write check',
+  'figmaWizard.skipWriteTitle':
+    'Use only if you have already confirmed this Figma file is editable.',
   'figmaWizard.copyCommand': 'Copy command',
   'figmaWizard.copied': 'Copied',
   'figmaWizard.waitingAuth': 'Waiting for authorization to finish. Return here and recheck after the browser flow completes.',

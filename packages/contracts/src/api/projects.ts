@@ -47,6 +47,7 @@ export interface FigmaOutputSettings {
 export interface FigmaPreflightRequest {
   target?: FigmaTarget;
   checkWriteAccess?: boolean;
+  skipWriteProbe?: boolean;
 }
 
 export type FigmaMcpSetupActionKind =

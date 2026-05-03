@@ -105,6 +105,21 @@ describe('FigmaMcpAuthorizationWizard', () => {
     expect(markup).not.toContain('manual_command');
   });
 
+  it('offers an explicit skip after read access is verified', () => {
+    const markup = render(preflight({
+      overallStatus: 'ready',
+      canGenerate: false,
+      userAction: 'none',
+      steps: [
+        { code: 'figma_mcp_available', status: 'passed', messageKey: 'figma.preflight.figma_mcp_available' },
+        { code: 'file_readable', status: 'passed', messageKey: 'figma.preflight.file_readable' },
+      ],
+    }));
+
+    expect(markup).toContain('Skip write check');
+    expect(markup).toContain('Use only if you have already confirmed this Figma file is editable');
+  });
+
   it('explains invalid target URLs before setup or OAuth actions', () => {
     const markup = render(preflight({
       overallStatus: 'target_invalid',

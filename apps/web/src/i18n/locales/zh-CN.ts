@@ -406,6 +406,8 @@ export const zhCN: Dict = {
   'figmaWizard.openAuthorization': '打开授权',
   'figmaWizard.recheck': '我已完成，重新检查',
   'figmaWizard.checkWrite': '检查写权限',
+  'figmaWizard.skipWrite': '跳过写检查',
+  'figmaWizard.skipWriteTitle': '仅在你已经确认这个 Figma 文件可编辑时使用。',
   'figmaWizard.copyCommand': '复制命令',
   'figmaWizard.copied': '已复制',
   'figmaWizard.waitingAuth':
