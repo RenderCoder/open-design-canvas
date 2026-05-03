@@ -4,6 +4,12 @@ const EXPECTED_FIGMA_MCP_URL = 'https://mcp.figma.com/mcp';
 const DEFAULT_FIGMA_MCP_SERVER = 'figma';
 const COMMAND_TIMEOUT_MS = 20_000;
 const WRITE_PROBE_TIMEOUT_MS = 90_000;
+const WRITE_PROBE_PAGE_NAME = 'ODC MCP Probe';
+const WRITE_PROBE_FRAME_NAME = 'ODC MCP Write Probe';
+const WRITE_PROBE_MARKER =
+  'Open Design Canvas write-permission probe. Safe to delete this page/frame if no check is running.';
+const WRITE_PROBE_CLEANUP =
+  'Delete only the Figma page named "ODC MCP Probe" or the frame named "ODC MCP Write Probe"; do not delete user-created canvas nodes.';
 const FIGMA_DESIGN_URL_RE =
   /^https:\/\/(?:www\.)?figma\.com\/(?:design|file|board)\/([^/?#]+)(?:[/?#]|$)/i;
 
@@ -75,7 +81,10 @@ interface FigmaPreflightSafeDetails {
   fileKeyRedacted?: string | undefined;
   nodeId?: string | undefined;
   pageName?: string | undefined;
+  probePageName?: string | undefined;
   probeNodeName?: string | undefined;
+  probeMarker?: string | undefined;
+  probeCleanupInstruction?: string | undefined;
   errorClass?: 'auth' | 'permission' | 'network' | 'invalid_target' | 'unknown' | undefined;
   retryable?: boolean | undefined;
 }
@@ -308,14 +317,14 @@ export async function runFigmaPreflight({
     steps.push(step(code, 'failed', checkedAt, {
       ...parsedTarget.details,
       errorClass: code === 'edit_permission_missing' || code === 'write_probe_failed' ? 'permission' : 'auth',
-      probeNodeName: 'ODC MCP Write Probe',
+      ...writeProbeSafeDetails(),
       retryable: true,
     }));
     return summarize(steps, parsedTarget.target, checkedAt);
   }
   steps.push(step('write_probe_passed', 'passed', checkedAt, {
     ...parsedTarget.details,
-    probeNodeName: 'ODC MCP Write Probe',
+    ...writeProbeSafeDetails(),
   }));
 
   return summarize(steps, parsedTarget.target, checkedAt);
@@ -410,7 +419,8 @@ function summarize(
   lastCheckedAt: string,
 ): FigmaPreflightSummary {
   const failed = steps.find((item) => item.status === 'failed');
-  const writePassed = steps.some((item) => item.code === 'write_probe_passed' && item.status === 'passed');
+  const writePassedStep = steps.find((item) => item.code === 'write_probe_passed' && item.status === 'passed');
+  const writePassed = Boolean(writePassedStep);
   const blocking = failed ?? (writePassed ? undefined : findLastCompletedStep(steps));
   const code = failed?.code ?? (writePassed ? 'write_probe_passed' : (blocking?.code ?? 'unknown_error'));
   const defaults = FIGMA_PREFLIGHT_STEP_DEFAULTS[code];
@@ -422,7 +432,7 @@ function summarize(
     lastCheckedAt,
     canGenerate: writePassed,
     userAction: failed ? defaults.userAction : writePassed ? 'none' : defaults.userAction,
-    safeDetails: failed?.safeDetails ?? blocking?.safeDetails,
+    safeDetails: failed?.safeDetails ?? writePassedStep?.safeDetails ?? blocking?.safeDetails,
   }) as FigmaPreflightSummary;
 }
 
@@ -534,9 +544,21 @@ function writeProbePrompt(target: FigmaPreflightSummary['target']): string {
     'Use Figma MCP to verify write authorization with one tiny safe probe.',
     `Target fileKey: ${target.fileKey}`,
     target.nodeId ? `Target nodeId: ${target.nodeId}` : '',
-    'Call use_figma exactly once. Create or update a 180x80 frame named "ODC MCP Write Probe" on a page named "ODC MCP Probe".',
+    `Call use_figma exactly once. Reuse the existing page named "${WRITE_PROBE_PAGE_NAME}" and frame named "${WRITE_PROBE_FRAME_NAME}" if present; otherwise create them.`,
+    `The probe frame must be 180x80 and named "${WRITE_PROBE_FRAME_NAME}" on page "${WRITE_PROBE_PAGE_NAME}".`,
+    `Add visible helper text or shared plugin data with this marker: "${WRITE_PROBE_MARKER}"`,
+    'Never modify, delete, or move user-created nodes outside that named probe page/frame.',
     'Do not create a full design. Return exactly PASS with file/page/node details or FAIL with the blocker.',
   ].filter(Boolean).join('\n');
+}
+
+function writeProbeSafeDetails(): FigmaPreflightSafeDetails {
+  return {
+    probePageName: WRITE_PROBE_PAGE_NAME,
+    probeNodeName: WRITE_PROBE_FRAME_NAME,
+    probeMarker: WRITE_PROBE_MARKER,
+    probeCleanupInstruction: WRITE_PROBE_CLEANUP,
+  };
 }
 
 function classifyProbeFailure(text: string, fallback: FigmaPreflightStepCode): FigmaPreflightStepCode {

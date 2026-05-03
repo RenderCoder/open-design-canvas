@@ -397,7 +397,9 @@ export const zhCN: Dict = {
   'figmaWizard.stepReadyBody': 'Figma-native 生成可以写入这个目标。',
   'figmaWizard.probeSummary': '写入检查已通过：{name}。',
   'figmaWizard.writeProbeNotice':
-    '写权限检查只会创建或更新一个很小的 ODC MCP Probe 画框，用来确认是否能编辑。',
+    '写权限检查只会在 ODC MCP Probe 页面创建或更新一个很小的 ODC MCP Write Probe 画框，用来确认是否能编辑。',
+  'figmaWizard.probeCleanup':
+    '清理时只删除 ODC MCP Probe 页面或 ODC MCP Write Probe 画框，不要删除用户设计内容。',
   'figmaWizard.check': '开始检查',
   'figmaWizard.prepareSetup': '准备配置',
   'figmaWizard.authorize': '授权 Figma',

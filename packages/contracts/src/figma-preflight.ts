@@ -61,7 +61,10 @@ export interface FigmaPreflightSafeDetails {
   fileKeyRedacted?: string;
   nodeId?: string;
   pageName?: string;
+  probePageName?: string;
   probeNodeName?: string;
+  probeMarker?: string;
+  probeCleanupInstruction?: string;
   errorClass?: 'auth' | 'permission' | 'network' | 'invalid_target' | 'unknown';
   retryable?: boolean;
 }

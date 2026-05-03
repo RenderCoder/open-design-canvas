@@ -96,8 +96,30 @@ ODC_FIGMA_PROBE_TARGET='https://www.figma.com/design/...' \
   bash .ai/figma-codex/scripts/check-figma-write-access.sh
 ```
 
-This opt-in probe creates one tiny temporary frame named `ODC MCP Write Probe`.
-Use a disposable file or remove the probe page afterward.
+This opt-in probe creates or updates one tiny temporary frame named
+`ODC MCP Write Probe` on a page named `ODC MCP Probe`. Repeated runs must reuse
+that same page/frame when it already exists instead of creating a new copy. The
+probe may include helper text or shared plugin data with this marker:
+
+```text
+Open Design Canvas write-permission probe. Safe to delete this page/frame if no check is running.
+```
+
+The probe exists only to verify edit access; it is not part of the generated
+design. Use a disposable file when possible.
+
+### Probe cleanup
+
+Only clean up nodes that are clearly owned by Open Design Canvas:
+
+- Safe targets: the page named `ODC MCP Probe` and the frame named
+  `ODC MCP Write Probe`.
+- Do not delete user-created pages, frames, components, or selected design
+  content, even if they sit near the probe.
+- Clean up after the write check finishes. Do not delete the probe while a check
+  is running.
+- If the page contains anything other than the named probe frame and its helper
+  text/metadata, inspect it manually and remove only the probe frame.
 
 If the probe fails with `user cancelled MCP tool call`, check the Codex MCP
 approval configuration above first. If approval is configured and the probe

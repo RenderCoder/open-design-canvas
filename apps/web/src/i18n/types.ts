@@ -420,6 +420,7 @@ export interface Dict {
   'figmaWizard.stepReadyBody': string;
   'figmaWizard.probeSummary': string;
   'figmaWizard.writeProbeNotice': string;
+  'figmaWizard.probeCleanup': string;
   'figmaWizard.check': string;
   'figmaWizard.prepareSetup': string;
   'figmaWizard.authorize': string;

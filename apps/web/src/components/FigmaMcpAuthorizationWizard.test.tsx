@@ -55,6 +55,7 @@ describe('FigmaMcpAuthorizationWizard', () => {
     expect(markup).toContain('Authorization and write check');
     expect(markup).toContain('Ready');
     expect(markup).toContain('Write probe passed on ODC MCP Write Probe.');
+    expect(markup).toContain('Cleanup: delete only the ODC MCP Probe page');
     expect(markup).toContain('Check write permission');
     expect(markup).not.toContain('jsonl');
   });
@@ -99,6 +100,7 @@ describe('FigmaMcpAuthorizationWizard', () => {
     }));
 
     expect(markup).toContain('This account can read the file but cannot edit it');
+    expect(markup).toContain('ODC MCP Write Probe');
     expect(markup).toContain('Check write permission');
     expect(markup).not.toContain('manual_command');
   });

@@ -143,9 +143,15 @@ export function FigmaMcpAuthorizationWizard({
       {currentPreflight?.safeDetails?.probeNodeName ? (
         <div className="figma-mcp-probe">
           {t('figmaWizard.probeSummary', { name: currentPreflight.safeDetails.probeNodeName })}
+          <br />
+          {currentPreflight.safeDetails.probeCleanupInstruction ?? t('figmaWizard.probeCleanup')}
         </div>
       ) : (
-        <div className="figma-mcp-probe">{t('figmaWizard.writeProbeNotice')}</div>
+        <div className="figma-mcp-probe">
+          {t('figmaWizard.writeProbeNotice')}
+          <br />
+          {t('figmaWizard.probeCleanup')}
+        </div>
       )}
 
       <div className="figma-mcp-actions">

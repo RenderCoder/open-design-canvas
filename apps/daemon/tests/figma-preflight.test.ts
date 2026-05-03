@@ -167,7 +167,12 @@ describe('runFigmaPreflight', () => {
     assert.equal(preflight.target.fileKeyRedacted, 'abc1...6789');
     assert.equal(preflight.target.nodeId, '1:2');
     assert.equal(preflight.target.fileUrlRedacted, 'https://www.figma.com/design/abc1...6789');
-    assert.ok(runner.calls.some((call) => call.input?.includes('ODC MCP Write Probe')));
+    assert.equal(preflight.safeDetails?.probePageName, 'ODC MCP Probe');
+    assert.equal(preflight.safeDetails?.probeNodeName, 'ODC MCP Write Probe');
+    assert.match(preflight.safeDetails?.probeMarker ?? '', /Open Design Canvas write-permission probe/);
+    assert.match(preflight.safeDetails?.probeCleanupInstruction ?? '', /Delete only/);
+    assert.ok(runner.calls.some((call) => call.input?.includes('Reuse the existing page named "ODC MCP Probe"')));
+    assert.ok(runner.calls.some((call) => call.input?.includes('Never modify, delete, or move user-created nodes')));
   });
 
   it('classifies use_figma edit failures as write permission blockers', async () => {
@@ -185,7 +190,9 @@ describe('runFigmaPreflight', () => {
     assert.equal(preflight.userAction, 'request_edit_access');
     assert.equal(preflight.steps.at(-1)?.code, 'edit_permission_missing');
     assert.equal(preflight.safeDetails?.errorClass, 'permission');
+    assert.equal(preflight.safeDetails?.probePageName, 'ODC MCP Probe');
     assert.equal(preflight.safeDetails?.probeNodeName, 'ODC MCP Write Probe');
+    assert.match(preflight.safeDetails?.probeCleanupInstruction ?? '', /ODC MCP Probe/);
   });
 
   it('maps user-cancelled write probe to an authorization action', async () => {
