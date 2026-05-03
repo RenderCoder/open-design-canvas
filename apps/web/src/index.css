@@ -4023,13 +4023,47 @@ code {
   justify-content: center;
   padding: 24px;
 }
-.image-body img {
-  max-width: 100%;
-  max-height: 100%;
+.image-body-zoomable {
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+.image-zoom-stage {
+  min-width: 100%;
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+}
+.image-body-zoomable .image-zoom-stage {
+  width: max(100%, calc(100% * var(--image-zoom, 1)));
+  height: max(100%, calc(100% * var(--image-zoom, 1)));
+}
+.image-zoom-stage img {
+  max-width: calc(100% / var(--image-zoom, 1));
+  max-height: calc(100% / var(--image-zoom, 1));
   object-fit: contain;
   background: white;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
+  transform: scale(var(--image-zoom, 1));
+  transform-origin: center;
+}
+.image-zoom-reset {
+  min-width: 58px;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+.image-viewer .viewer-toolbar,
+.svg-viewer .viewer-toolbar {
+  min-height: 44px;
+  height: auto;
+}
+.image-viewer .viewer-toolbar-actions,
+.svg-viewer .viewer-toolbar-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 /* Sketch editor */

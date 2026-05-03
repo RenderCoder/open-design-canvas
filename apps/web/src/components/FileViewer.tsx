@@ -33,6 +33,9 @@ type TranslateFn = (key: keyof Dict, vars?: Record<string, string | number>) => 
 type SlideState = { active: number; count: number };
 
 const htmlPreviewSlideState = new Map<string, SlideState>();
+const IMAGE_ZOOM_MIN = 25;
+const IMAGE_ZOOM_MAX = 1000;
+const IMAGE_ZOOM_STEP = 25;
 
 interface Props {
   projectId: string;
@@ -1423,6 +1426,7 @@ function ImageViewer({
 }) {
   const t = useT();
   const url = `${projectFileUrl(projectId, file.name)}?v=${Math.round(file.mtime)}`;
+  const { zoom, setZoom, bumpZoom } = useImageZoom();
   return (
     <div className="viewer image-viewer">
       <div className="viewer-toolbar">
@@ -1434,6 +1438,8 @@ function ImageViewer({
           </span>
         </div>
         <div className="viewer-toolbar-actions">
+          <ImageZoomControls zoom={zoom} setZoom={setZoom} bumpZoom={bumpZoom} />
+          <span className="viewer-divider" aria-hidden />
           <a
             className="ghost-link"
             href={projectFileUrl(projectId, file.name)}
@@ -1451,11 +1457,94 @@ function ImageViewer({
           </a>
         </div>
       </div>
-      <div className="viewer-body image-body">
-        <img alt={file.name} src={url} />
+      <ZoomableImageBody alt={file.name} src={url} zoom={zoom} />
+    </div>
+  );
+}
+
+function useImageZoom(initialZoom = 100) {
+  const [zoom, setZoomState] = useState(clampImageZoom(initialZoom));
+  const setZoom = (value: number) => {
+    setZoomState(clampImageZoom(value));
+  };
+  const bumpZoom = (delta: number) => {
+    setZoomState((current) => clampImageZoom(current + delta));
+  };
+  return { zoom, setZoom, bumpZoom };
+}
+
+function ImageZoomControls({
+  zoom,
+  setZoom,
+  bumpZoom,
+}: {
+  zoom: number;
+  setZoom: (zoom: number) => void;
+  bumpZoom: (delta: number) => void;
+}) {
+  const t = useT();
+  return (
+    <>
+      <button
+        type="button"
+        className="icon-only"
+        onClick={() => bumpZoom(-IMAGE_ZOOM_STEP)}
+        disabled={zoom <= IMAGE_ZOOM_MIN}
+        title={t('fileViewer.zoomOut')}
+        aria-label={t('fileViewer.zoomOut')}
+      >
+        <Icon name="zoom-out" size={14} />
+      </button>
+      <button
+        type="button"
+        className="viewer-action image-zoom-reset"
+        onClick={() => setZoom(100)}
+        title={t('fileViewer.resetZoom')}
+        aria-label={t('fileViewer.resetZoom')}
+        data-min-zoom={IMAGE_ZOOM_MIN}
+        data-max-zoom={IMAGE_ZOOM_MAX}
+      >
+        <span>{formatImageZoom(zoom)}</span>
+      </button>
+      <button
+        type="button"
+        className="icon-only"
+        onClick={() => bumpZoom(IMAGE_ZOOM_STEP)}
+        disabled={zoom >= IMAGE_ZOOM_MAX}
+        title={t('fileViewer.zoomIn')}
+        aria-label={t('fileViewer.zoomIn')}
+      >
+        <Icon name="zoom-in" size={14} />
+      </button>
+    </>
+  );
+}
+
+function ZoomableImageBody({
+  alt,
+  src,
+  zoom,
+}: {
+  alt: string;
+  src: string;
+  zoom: number;
+}) {
+  const scale = zoom / 100;
+  return (
+    <div className="viewer-body image-body image-body-zoomable">
+      <div className="image-zoom-stage" style={{ ['--image-zoom' as string]: scale }}>
+        <img alt={alt} src={src} />
       </div>
     </div>
   );
+}
+
+function clampImageZoom(value: number): number {
+  return Math.min(IMAGE_ZOOM_MAX, Math.max(IMAGE_ZOOM_MIN, value));
+}
+
+function formatImageZoom(value: number): string {
+  return `${Math.round(value)}%`;
 }
 
 function VideoViewer({
@@ -1535,6 +1624,7 @@ export function SvgViewer({
   const [loadingSource, setLoadingSource] = useState(false);
   const [sourceError, setSourceError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  const { zoom, setZoom, bumpZoom } = useImageZoom();
   const url = `${projectFileUrl(projectId, file.name)}?v=${Math.round(file.mtime)}&r=${reloadKey}`;
 
   useEffect(() => {
@@ -1589,6 +1679,12 @@ export function SvgViewer({
             </button>
           </div>
           <span className="viewer-divider" aria-hidden />
+          {mode === 'preview' ? (
+            <>
+              <ImageZoomControls zoom={zoom} setZoom={setZoom} bumpZoom={bumpZoom} />
+              <span className="viewer-divider" aria-hidden />
+            </>
+          ) : null}
           <button
             type="button"
             className="viewer-action"
@@ -1615,17 +1711,19 @@ export function SvgViewer({
           </a>
         </div>
       </div>
-      <div className={`viewer-body ${mode === 'preview' ? 'image-body' : ''}`}>
-        {mode === 'preview' ? (
-          <img alt={file.name} src={url} />
-        ) : loadingSource ? (
-          <div className="viewer-empty">{t('fileViewer.loading')}</div>
-        ) : sourceError ? (
-          <div className="viewer-empty">{t('fileViewer.previewUnavailable')}</div>
-        ) : (
-          <pre className="viewer-source">{source ?? ''}</pre>
-        )}
-      </div>
+      {mode === 'preview' ? (
+        <ZoomableImageBody alt={file.name} src={url} zoom={zoom} />
+      ) : (
+        <div className="viewer-body">
+          {loadingSource ? (
+            <div className="viewer-empty">{t('fileViewer.loading')}</div>
+          ) : sourceError ? (
+            <div className="viewer-empty">{t('fileViewer.previewUnavailable')}</div>
+          ) : (
+            <pre className="viewer-source">{source ?? ''}</pre>
+          )}
+        </div>
+      )}
     </div>
   );
 }

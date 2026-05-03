@@ -52,6 +52,22 @@ describe('FileViewer SVG artifacts', () => {
     expect(markup).not.toContain('class="viewer-tabs"');
   });
 
+  it('renders zoom controls for normal images with the required range', () => {
+    const file = baseFile({ name: 'photo.png', path: 'photo.png' });
+
+    const markup = renderToStaticMarkup(<FileViewer projectId="project-1" file={file} />);
+
+    expect(markup).toContain('aria-label="Zoom out"');
+    expect(markup).toContain('aria-label="Zoom in"');
+    expect(markup).toContain('aria-label="Reset zoom"');
+    expect(markup).toContain('data-min-zoom="25"');
+    expect(markup).toContain('data-max-zoom="1000"');
+    expect(markup).toContain('class="viewer-action image-zoom-reset"');
+    expect(markup).toContain('100%');
+    expect(markup).toContain('class="viewer-body image-body image-body-zoomable"');
+    expect(markup).toContain('--image-zoom:1');
+  });
+
   it('marks preview and source modes through the SVG viewer toggle controls', () => {
     const file = baseFile({ name: 'diagram.svg', path: 'diagram.svg', mime: 'image/svg+xml' });
 
@@ -70,11 +86,15 @@ describe('FileViewer SVG artifacts', () => {
     expect(previewMarkup).toContain('class="viewer-tab active" aria-pressed="true">Preview</button>');
     expect(previewMarkup).toContain('aria-pressed="false">Source</button>');
     expect(previewMarkup).toContain('<img');
+    expect(previewMarkup).toContain('aria-label="Zoom out"');
+    expect(previewMarkup).toContain('aria-label="Zoom in"');
 
     expect(sourceMarkup).toContain('aria-pressed="false">Preview</button>');
     expect(sourceMarkup).toContain('class="viewer-tab active" aria-pressed="true">Source</button>');
     expect(sourceMarkup).toContain('class="viewer-source"');
     expect(sourceMarkup).not.toContain('<img');
+    expect(sourceMarkup).not.toContain('aria-label="Zoom out"');
+    expect(sourceMarkup).not.toContain('aria-label="Zoom in"');
   });
 
   it('renders unsafe SVG source as escaped text instead of executable markup', () => {
