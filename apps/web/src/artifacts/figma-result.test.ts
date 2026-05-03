@@ -112,6 +112,67 @@ describe('parseFigmaNativeResultText', () => {
     });
   });
 
+  it('preserves Figma snapshot result metadata', () => {
+    const parsed = normalizeFigmaNativeResult({
+      kind: 'figma_native_result',
+      status: 'completed',
+      checks: { metadata: 'passed' },
+      snapshot: {
+        status: 'passed',
+        fileName: 'figma-20260503-142530-home-hero-refine.png',
+        projectRelativePath: 'figma-20260503-142530-home-hero-refine.png',
+        pixelWidth: 2880,
+        pixelHeight: 1800,
+        scale: 2,
+        expectedMinWidth: 2800,
+        actualWidth: 2880,
+        actualHeight: 1800,
+        qualityStatus: 'high_resolution',
+        sourceFileKey: 'demo-file',
+        sourceNodeId: '1:2',
+        sourceNodeName: 'Home / Hero',
+        capturedAt: '2026-05-03T14:25:30.000Z',
+        purposeSlug: 'home-hero-refine',
+        exportMethod: 'figma_mcp_export_async',
+        warnings: [],
+      },
+    });
+
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) throw new Error(parsed.error);
+    expect(parsed.result.snapshot).toMatchObject({
+      status: 'passed',
+      fileName: 'figma-20260503-142530-home-hero-refine.png',
+      pixelWidth: 2880,
+      pixelHeight: 1800,
+      expectedMinWidth: 2800,
+      actualWidth: 2880,
+      qualityStatus: 'high_resolution',
+      purposeSlug: 'home-hero-refine',
+    });
+  });
+
+  it('normalizes unknown snapshot statuses to skipped', () => {
+    const parsed = normalizeFigmaNativeResult({
+      kind: 'figma_native_result',
+      status: 'partial',
+      checks: {},
+      snapshot: {
+        status: 'unknown-future-status',
+        qualityStatus: 'not-a-quality-status',
+        warnings: ['Snapshot exporter did not run.'],
+      },
+    });
+
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) throw new Error(parsed.error);
+    expect(parsed.result.snapshot).toMatchObject({
+      status: 'skipped',
+      warnings: ['Snapshot exporter did not run.'],
+    });
+    expect(parsed.result.snapshot?.qualityStatus).toBeUndefined();
+  });
+
   it('returns a safe error for malformed JSON envelopes', () => {
     const parsed = parseFigmaNativeResultText(
       '```figma_native_result\n{"kind":"figma_native_result","status":"completed"\n```',

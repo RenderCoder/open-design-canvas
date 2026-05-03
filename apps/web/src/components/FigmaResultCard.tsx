@@ -78,6 +78,16 @@ export function FigmaResultCard({ result }: Props) {
         />
       </div>
 
+      {result.snapshot ? (
+        <div className="figma-result-snapshot">
+          <span className="figma-summary-title">Snapshot</span>
+          <strong>{result.snapshot.fileName ?? humanSnapshotStatus(result.snapshot.status)}</strong>
+          <span>
+            {snapshotDetails(result)}
+          </span>
+        </div>
+      ) : null}
+
       {checks.length > 0 ? (
         <div className="figma-result-checks">
           {checks.map(([name, status]) => (
@@ -143,6 +153,18 @@ export function resultWarnings(result: FigmaNativeResult): string[] {
   }
   if (result.textOverlapCheck?.remainingNodeIds?.length) {
     warnings.push(`${result.textOverlapCheck.remainingNodeIds.length} text overlap issue${result.textOverlapCheck.remainingNodeIds.length === 1 ? '' : 's'} remain`);
+  }
+  if (!result.snapshot) {
+    warnings.push('Figma snapshot was not reported');
+  } else {
+    if (result.snapshot.status === 'failed') {
+      warnings.push(`Figma snapshot failed${result.snapshot.error ? `: ${result.snapshot.error}` : ''}`);
+    } else if (result.snapshot.status === 'degraded' || result.snapshot.qualityStatus === 'low_resolution') {
+      warnings.push('Figma snapshot was degraded below the preferred resolution');
+    }
+    if (result.snapshot.warnings?.length) {
+      warnings.push(...result.snapshot.warnings.slice(0, 2));
+    }
   }
   return warnings;
 }
@@ -228,6 +250,28 @@ function humanStatus(status: FigmaNativeResult['status']): string {
   if (status === 'partial') return 'Partial';
   if (status === 'blocked') return 'Blocked';
   return 'Failed';
+}
+
+function humanSnapshotStatus(status: NonNullable<FigmaNativeResult['snapshot']>['status']): string {
+  if (status === 'passed') return 'Saved';
+  if (status === 'degraded') return 'Saved with warnings';
+  if (status === 'failed') return 'Failed';
+  return 'Skipped';
+}
+
+function snapshotDetails(result: FigmaNativeResult): string {
+  const snapshot = result.snapshot;
+  if (!snapshot) return '';
+  const size =
+    typeof snapshot.pixelWidth === 'number' && typeof snapshot.pixelHeight === 'number'
+      ? `${snapshot.pixelWidth} x ${snapshot.pixelHeight}`
+      : typeof snapshot.actualWidth === 'number' && typeof snapshot.actualHeight === 'number'
+        ? `${snapshot.actualWidth} x ${snapshot.actualHeight}`
+        : null;
+  const scale = typeof snapshot.scale === 'number' ? `${snapshot.scale}x` : null;
+  return [humanSnapshotStatus(snapshot.status), size, scale, snapshot.projectRelativePath]
+    .filter(Boolean)
+    .join(' - ');
 }
 
 function statusToTone(status: FigmaNativeResult['status']): 'ok' | 'warn' | 'bad' {

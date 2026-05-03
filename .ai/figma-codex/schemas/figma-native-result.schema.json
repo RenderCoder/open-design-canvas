@@ -170,6 +170,9 @@
     "textOverlapCheck": {
       "$ref": "#/$defs/readabilityCheck"
     },
+    "snapshot": {
+      "$ref": "#/$defs/snapshotResult"
+    },
     "knownIssues": {
       "type": "array",
       "description": "Legacy alias accepted by parsers and normalized to issues.",
@@ -258,6 +261,92 @@
           "minimum": 0
         },
         "summary": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "snapshotResult": {
+      "type": "object",
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "passed",
+            "degraded",
+            "failed",
+            "skipped"
+          ]
+        },
+        "fileName": {
+          "type": "string",
+          "pattern": "^figma-[0-9]{8}-[0-9]{6}-[a-z0-9][a-z0-9-]{0,47}(?:-[0-9]+)?\\.png$",
+          "maxLength": 96
+        },
+        "projectRelativePath": {
+          "type": "string"
+        },
+        "pixelWidth": {
+          "type": "number",
+          "minimum": 1
+        },
+        "pixelHeight": {
+          "type": "number",
+          "minimum": 1
+        },
+        "scale": {
+          "type": "number",
+          "minimum": 0
+        },
+        "expectedMinWidth": {
+          "type": "number",
+          "minimum": 1
+        },
+        "actualWidth": {
+          "type": "number",
+          "minimum": 1
+        },
+        "actualHeight": {
+          "type": "number",
+          "minimum": 1
+        },
+        "qualityStatus": {
+          "enum": [
+            "high_resolution",
+            "degraded",
+            "low_resolution",
+            "failed",
+            "skipped"
+          ]
+        },
+        "sourceFileKey": {
+          "type": "string"
+        },
+        "sourceNodeId": {
+          "type": "string"
+        },
+        "sourceNodeName": {
+          "type": "string"
+        },
+        "capturedAt": {
+          "type": "string"
+        },
+        "purposeSlug": {
+          "type": "string",
+          "maxLength": 48
+        },
+        "exportMethod": {
+          "type": "string"
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "error": {
           "type": "string"
         }
       },

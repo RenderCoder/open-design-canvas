@@ -125,6 +125,25 @@ Agents should return a structured `figma_native_result` envelope at the end of a
     "remainingNodeIds": [],
     "ignoredCount": 0
   },
+  "snapshot": {
+    "status": "passed",
+    "fileName": "figma-20260503-142530-ai-landing-exploration.png",
+    "projectRelativePath": "figma-20260503-142530-ai-landing-exploration.png",
+    "pixelWidth": 2880,
+    "pixelHeight": 6400,
+    "scale": 2,
+    "expectedMinWidth": 2800,
+    "actualWidth": 2880,
+    "actualHeight": 6400,
+    "qualityStatus": "high_resolution",
+    "sourceFileKey": "...",
+    "sourceNodeId": "...",
+    "sourceNodeName": "Landing / Desktop / 1440",
+    "capturedAt": "2026-05-03T14:25:30.000Z",
+    "purposeSlug": "ai-landing-exploration",
+    "exportMethod": "figma_mcp_export_async",
+    "warnings": []
+  },
   "knownIssues": [],
   "nextIteration": ["Add mobile variant"]
 }
@@ -142,9 +161,55 @@ Recommended fields:
 - `fileKey`, `pageName`, and `rootFrame`.
 - `created` and `updated` node summaries.
 - `reusedComponents`, `variablesUsed`, `stylesUsed`, and `hardcodedValues`.
+- `snapshot` for the saved PNG process snapshot in Design Files.
 - `knownIssues` and `nextIteration`.
 
 The seed JSON Schema lives at [`.ai/figma-codex/schemas/figma-native-result.schema.json`](../../.ai/figma-codex/schemas/figma-native-result.schema.json). Later implementation should either promote that schema into project-owned code or generate runtime validation from it.
+
+## Figma Snapshot Result
+
+Figma-native completion should report a process snapshot with `snapshot`. The
+snapshot is a high-resolution PNG saved into the existing project Design Files
+directory; it is preview evidence and does not replace the editable Figma file.
+
+Snapshot status values:
+
+| Status | Meaning |
+| --- | --- |
+| `passed` | A PNG was saved and met the expected resolution guard. |
+| `degraded` | A PNG was saved, but export constraints, Figma limits, or fallback behavior reduced quality. |
+| `failed` | Figma canvas work may have completed, but no acceptable snapshot was saved. |
+| `skipped` | Snapshot export was intentionally not attempted, with the reason in `warnings` or `error`. |
+
+Filename rule:
+
+- Use `figma-YYYYMMDD-HHmmss-<purpose-slug>.png`.
+- `purposeSlug` comes from the user task or a short agent summary, normalized to
+  safe ASCII lowercase words separated by hyphens.
+- Keep `purposeSlug` to 32-48 characters and full `fileName` to 96 characters
+  or less.
+- Never overwrite an existing Design Files entry. If the same second and slug
+  collide, append `-2`, `-3`, or another short safe suffix before `.png`.
+
+Resolution guard:
+
+- `pixelWidth` / `pixelHeight` are the saved PNG dimensions.
+- `expectedMinWidth` records the minimum acceptable width for this export.
+- `actualWidth` / `actualHeight` record measured PNG dimensions after write.
+- `qualityStatus` must distinguish `high_resolution`, `degraded`,
+  `low_resolution`, `failed`, and `skipped`.
+- Do not silently mark a low-resolution screenshot as success. If the saved PNG
+  is below `expectedMinWidth`, use `status: "degraded"` or `status: "failed"`
+  and include a warning/error.
+
+Privacy and storage:
+
+- Do not store OAuth tokens, full private Figma URLs, or customer text in
+  snapshot metadata.
+- Use `projectRelativePath` for the project file path, not an absolute local
+  filesystem path.
+- `sourceFileKey` and `sourceNodeId` may be present in local project results, but
+  logs/docs/fixtures should use redacted or synthetic values.
 
 ## Text Readability Canvas Lint
 

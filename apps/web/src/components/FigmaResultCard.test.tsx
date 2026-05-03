@@ -45,6 +45,7 @@ describe('FigmaResultCard', () => {
       'Variable/token check was not reported',
       'Text readability check was not reported',
       'Text overlap check was not reported',
+      'Figma snapshot was not reported',
     ]);
   });
 
@@ -71,6 +72,43 @@ describe('FigmaResultCard', () => {
 
     expect(resultWarnings(parsed.result)).toContain('Text overlap repair attempts: 2');
     expect(resultWarnings(parsed.result)).toContain('2 text overlap issues remain');
+  });
+
+  it('surfaces Figma snapshot status and low-resolution warnings', () => {
+    const parsed = normalizeFigmaNativeResult({
+      kind: 'figma_native_result',
+      status: 'partial',
+      checks: {
+        metadata: 'passed',
+        screenshot: 'passed',
+        variables: 'passed',
+        textReadability: 'passed',
+        textOverlap: 'passed',
+      },
+      reusedComponents: [{ name: 'Card' }],
+      snapshot: {
+        status: 'degraded',
+        fileName: 'figma-20260503-142530-home-hero-refine.png',
+        projectRelativePath: 'figma-20260503-142530-home-hero-refine.png',
+        pixelWidth: 1200,
+        pixelHeight: 900,
+        scale: 1,
+        expectedMinWidth: 2800,
+        actualWidth: 1200,
+        actualHeight: 900,
+        qualityStatus: 'low_resolution',
+        warnings: ['Snapshot below expected minimum width.'],
+      },
+    });
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) throw new Error(parsed.error);
+
+    const markup = renderToStaticMarkup(<FigmaResultCard result={parsed.result} />);
+    expect(markup).toContain('Snapshot');
+    expect(markup).toContain('figma-20260503-142530-home-hero-refine.png');
+    expect(markup).toContain('1200 x 900');
+    expect(resultWarnings(parsed.result)).toContain('Figma snapshot was degraded below the preferred resolution');
+    expect(resultWarnings(parsed.result)).toContain('Snapshot below expected minimum width.');
   });
 
   it('renders a figma_result event inside an assistant message', () => {

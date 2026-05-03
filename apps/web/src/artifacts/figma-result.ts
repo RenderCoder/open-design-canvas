@@ -7,6 +7,9 @@ import type {
   FigmaResultMcpEvent,
   FigmaResultNodeRef,
   FigmaResultStatus,
+  FigmaSnapshotQualityStatus,
+  FigmaSnapshotResult,
+  FigmaSnapshotStatus,
 } from '@open-design/contracts';
 
 export type {
@@ -18,6 +21,9 @@ export type {
   FigmaResultMcpEvent,
   FigmaResultNodeRef,
   FigmaResultStatus,
+  FigmaSnapshotQualityStatus,
+  FigmaSnapshotResult,
+  FigmaSnapshotStatus,
 };
 
 export type FigmaNativeResultParseResult =
@@ -100,6 +106,7 @@ export function normalizeFigmaNativeResult(value: unknown): FigmaNativeResultPar
       checks: checksRecord(value.checks),
       readabilityCheck: readabilityCheck(value.readabilityCheck),
       textOverlapCheck: readabilityCheck(value.textOverlapCheck),
+      snapshot: snapshotResult(value.snapshot),
       issues: issueArray(value.issues ?? value.knownIssues),
       nextActions: stringArray(value.nextActions ?? value.nextIteration),
       mcpEvents: objectArray(value.mcpEvents),
@@ -177,6 +184,51 @@ function readabilityCheck(value: unknown): FigmaReadabilityCheckResult | undefin
     ignoredCount: numberField(value.ignoredCount),
     summary: stringField(value.summary),
   };
+}
+
+const SNAPSHOT_STATUS_VALUES = new Set(['passed', 'degraded', 'failed', 'skipped']);
+const SNAPSHOT_QUALITY_VALUES = new Set([
+  'high_resolution',
+  'degraded',
+  'low_resolution',
+  'failed',
+  'skipped',
+]);
+
+function snapshotResult(value: unknown): FigmaSnapshotResult | undefined {
+  if (!isRecord(value)) return undefined;
+  const rawStatus = typeof value.status === 'string' ? value.status : 'skipped';
+  const status = SNAPSHOT_STATUS_VALUES.has(rawStatus)
+    ? (rawStatus as FigmaSnapshotStatus)
+    : 'skipped';
+  const rawQuality = typeof value.qualityStatus === 'string' ? value.qualityStatus : undefined;
+  const qualityStatus = rawQuality && SNAPSHOT_QUALITY_VALUES.has(rawQuality)
+    ? (rawQuality as FigmaSnapshotQualityStatus)
+    : undefined;
+  const snapshot: FigmaSnapshotResult = {
+    status,
+    fileName: stringField(value.fileName),
+    projectRelativePath: stringField(value.projectRelativePath),
+    pixelWidth: numberField(value.pixelWidth),
+    pixelHeight: numberField(value.pixelHeight),
+    scale: numberField(value.scale),
+    expectedMinWidth: numberField(value.expectedMinWidth),
+    actualWidth: numberField(value.actualWidth),
+    actualHeight: numberField(value.actualHeight),
+    sourceFileKey: stringField(value.sourceFileKey),
+    sourceNodeId: stringField(value.sourceNodeId),
+    sourceNodeName: stringField(value.sourceNodeName),
+    capturedAt: stringField(value.capturedAt),
+    purposeSlug: stringField(value.purposeSlug),
+    exportMethod: stringField(value.exportMethod),
+    warnings: stringArray(value.warnings),
+    error: stringField(value.error),
+  };
+  for (const [key, item] of Object.entries(value)) {
+    if (snapshot[key] === undefined && key !== 'qualityStatus') snapshot[key] = item;
+  }
+  if (qualityStatus !== undefined) snapshot.qualityStatus = qualityStatus;
+  return snapshot;
 }
 
 function issueArray(value: unknown): FigmaResultIssue[] {
