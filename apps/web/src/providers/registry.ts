@@ -7,7 +7,12 @@ import type {
   DeployProjectFileResponse,
   DesignSystemDetail,
   DesignSystemSummary,
+  FigmaMcpSetupAction,
+  FigmaMcpSetupActionRequest,
+  FigmaPreflightRequest,
+  FigmaPreflightSummary,
   ProjectDeploymentsResponse,
+  Project,
   PromptTemplateDetail,
   PromptTemplateSummary,
   ProjectFile,
@@ -211,6 +216,40 @@ export async function checkDeploymentLink(
     throw new Error(payload?.error?.message || payload?.message || `Link check failed (${resp.status})`);
   }
   return (await resp.json()) as DeployProjectFileResponse;
+}
+
+export async function runFigmaPreflight(
+  projectId: string,
+  input: FigmaPreflightRequest = {},
+): Promise<{ project: Project; preflight: FigmaPreflightSummary } | null> {
+  try {
+    const resp = await fetch(`/api/projects/${encodeURIComponent(projectId)}/figma/preflight`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    });
+    if (!resp.ok) return null;
+    return (await resp.json()) as { project: Project; preflight: FigmaPreflightSummary };
+  } catch {
+    return null;
+  }
+}
+
+export async function runFigmaMcpSetupAction(
+  projectId: string,
+  input: FigmaMcpSetupActionRequest,
+): Promise<{ project: Project; action: FigmaMcpSetupAction } | null> {
+  try {
+    const resp = await fetch(`/api/projects/${encodeURIComponent(projectId)}/figma/mcp-action`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    });
+    if (!resp.ok) return null;
+    return (await resp.json()) as { project: Project; action: FigmaMcpSetupAction };
+  } catch {
+    return null;
+  }
 }
 
 // Project files — all paths are scoped under .od/projects/<id>/ on disk.

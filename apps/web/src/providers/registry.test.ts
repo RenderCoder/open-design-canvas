@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { fetchAppVersionInfo, fetchProjectFileText } from './registry';
+import {
+  fetchAppVersionInfo,
+  fetchProjectFileText,
+  runFigmaMcpSetupAction,
+  runFigmaPreflight,
+} from './registry';
 
 describe('fetchAppVersionInfo', () => {
   afterEach(() => {
@@ -94,5 +99,50 @@ describe('fetchProjectFileText', () => {
         url: '/api/projects/project-1/raw/diagram.svg',
       }),
     );
+  });
+});
+
+describe('Figma MCP project helpers', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it('posts preflight requests to the project-scoped daemon route', async () => {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({
+      project: { id: 'project-1', name: 'Project 1' },
+      preflight: { kind: 'figma_preflight', canGenerate: false },
+    }), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(runFigmaPreflight('project-1', { checkWriteAccess: true })).resolves.toEqual({
+      project: { id: 'project-1', name: 'Project 1' },
+      preflight: { kind: 'figma_preflight', canGenerate: false },
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/projects/project-1/figma/preflight', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ checkWriteAccess: true }),
+    });
+  });
+
+  it('posts setup actions to the project-scoped daemon route', async () => {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({
+      project: { id: 'project-1', name: 'Project 1' },
+      action: { kind: 'start_mcp_login', status: 'manual_command', command: 'codex mcp login figma' },
+    }), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(runFigmaMcpSetupAction('project-1', { action: 'start_mcp_login' })).resolves.toEqual({
+      project: { id: 'project-1', name: 'Project 1' },
+      action: { kind: 'start_mcp_login', status: 'manual_command', command: 'codex mcp login figma' },
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/projects/project-1/figma/mcp-action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'start_mcp_login' }),
+    });
   });
 });

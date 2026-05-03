@@ -29,6 +29,7 @@ import { importClaudeDesignZip } from './claude-design-import.js';
 import { listPromptTemplates, readPromptTemplate } from './prompt-templates.js';
 import { buildDocumentPreview } from './document-preview.js';
 import { lintArtifact, renderFindingsForAgent } from './lint-artifact.js';
+import { runFigmaMcpSetupAction, runFigmaPreflight } from './figma-preflight.js';
 import { loadCraftSections } from './craft.js';
 import { generateMedia } from './media.js';
 import {
@@ -683,6 +684,69 @@ export async function startServer({ port = 7456, returnServer = false } = {}) {
       res.json(body);
     } catch (err) {
       sendApiError(res, 400, 'BAD_REQUEST', String(err));
+    }
+  });
+
+  app.post('/api/projects/:id/figma/preflight', async (req, res) => {
+    try {
+      const project = getProject(db, req.params.id);
+      if (!project) return sendApiError(res, 404, 'PROJECT_NOT_FOUND', 'not found');
+      const request = req.body || {};
+      const target = request.target && typeof request.target === 'object'
+        ? request.target
+        : project.metadata?.figmaTarget;
+      const preflight = await runFigmaPreflight({
+        target,
+        checkWriteAccess: request.checkWriteAccess === true,
+      });
+      const updated = updateProject(db, project.id, {
+        metadata: {
+          ...(project.metadata ?? { kind: 'other' }),
+          figmaTarget: target,
+          figmaPreflight: preflight,
+        },
+      });
+      /** @type {import('@open-design/contracts').ProjectFigmaPreflightResponse} */
+      const body = { project: updated, preflight };
+      res.json(body);
+    } catch (err) {
+      sendApiError(res, 400, 'BAD_REQUEST', String(err?.message || err));
+    }
+  });
+
+  app.post('/api/projects/:id/figma/mcp-action', async (req, res) => {
+    try {
+      const project = getProject(db, req.params.id);
+      if (!project) return sendApiError(res, 404, 'PROJECT_NOT_FOUND', 'not found');
+      const request = req.body || {};
+      if (
+        request.action !== 'prepare_mcp_setup' &&
+        request.action !== 'start_mcp_login' &&
+        request.action !== 'poll_mcp_status'
+      ) {
+        return sendApiError(res, 400, 'BAD_REQUEST', 'invalid Figma MCP action');
+      }
+      const target = request.target && typeof request.target === 'object'
+        ? request.target
+        : project.metadata?.figmaTarget;
+      const action = await runFigmaMcpSetupAction({
+        action: request.action,
+        target,
+      });
+      const updated = action.preflight
+        ? updateProject(db, project.id, {
+            metadata: {
+              ...(project.metadata ?? { kind: 'other' }),
+              figmaTarget: target,
+              figmaPreflight: action.preflight,
+            },
+          })
+        : project;
+      /** @type {import('@open-design/contracts').ProjectFigmaMcpSetupActionResponse} */
+      const body = { project: updated, action };
+      res.json(body);
+    } catch (err) {
+      sendApiError(res, 400, 'BAD_REQUEST', String(err?.message || err));
     }
   });
 

@@ -44,6 +44,42 @@ export interface FigmaOutputSettings {
   requireVariableCheck?: boolean;
 }
 
+export interface FigmaPreflightRequest {
+  target?: FigmaTarget;
+  checkWriteAccess?: boolean;
+}
+
+export type FigmaMcpSetupActionKind =
+  | 'prepare_mcp_setup'
+  | 'start_mcp_login'
+  | 'poll_mcp_status';
+
+export interface FigmaMcpSetupActionRequest {
+  action: FigmaMcpSetupActionKind;
+  target?: FigmaTarget;
+}
+
+export type FigmaMcpSetupActionStatus =
+  | 'ready'
+  | 'manual_command'
+  | 'needs_retry'
+  | 'failed';
+
+export interface FigmaMcpSetupAction {
+  kind: FigmaMcpSetupActionKind;
+  status: FigmaMcpSetupActionStatus;
+  canOpenExternal: boolean;
+  command?: string;
+  url?: string;
+  preflight?: FigmaPreflightSummary;
+  safeDetails?: {
+    serverName?: string;
+    expectedMcpUrl?: string;
+    reason?: string;
+    retryAfterMs?: number;
+  };
+}
+
 export type ProjectDisplayStatus =
   | 'not_started'
   | 'queued'
@@ -168,6 +204,16 @@ export interface ProjectsResponse {
 
 export interface ProjectResponse {
   project: Project;
+}
+
+export interface ProjectFigmaPreflightResponse {
+  project: Project;
+  preflight: FigmaPreflightSummary;
+}
+
+export interface ProjectFigmaMcpSetupActionResponse {
+  project: Project;
+  action: FigmaMcpSetupAction;
 }
 
 export interface CreateProjectResponse extends ProjectResponse {

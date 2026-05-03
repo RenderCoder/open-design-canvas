@@ -10,6 +10,9 @@ import type {
   Conversation,
   OpenTabsState,
   Project,
+  FigmaMcpSetupAction,
+  FigmaMcpSetupActionRequest,
+  FigmaPreflightRequest,
   ProjectMetadata,
   ProjectTemplate,
 } from '../types';
@@ -145,6 +148,40 @@ export async function patchProject(
     if (!resp.ok) return null;
     const json = (await resp.json()) as { project: Project };
     return json.project;
+  } catch {
+    return null;
+  }
+}
+
+export async function runFigmaPreflight(
+  projectId: string,
+  input: FigmaPreflightRequest = {},
+): Promise<{ project: Project; preflight: ProjectMetadata['figmaPreflight'] } | null> {
+  try {
+    const resp = await fetch(`/api/projects/${encodeURIComponent(projectId)}/figma/preflight`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    });
+    if (!resp.ok) return null;
+    return (await resp.json()) as { project: Project; preflight: ProjectMetadata['figmaPreflight'] };
+  } catch {
+    return null;
+  }
+}
+
+export async function runFigmaMcpSetupAction(
+  projectId: string,
+  input: FigmaMcpSetupActionRequest,
+): Promise<{ project: Project; action: FigmaMcpSetupAction } | null> {
+  try {
+    const resp = await fetch(`/api/projects/${encodeURIComponent(projectId)}/figma/mcp-action`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    });
+    if (!resp.ok) return null;
+    return (await resp.json()) as { project: Project; action: FigmaMcpSetupAction };
   } catch {
     return null;
   }

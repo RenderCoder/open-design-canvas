@@ -112,6 +112,31 @@ prompt before opening or modifying a file:
 codex exec --json "Use Figma MCP whoami and report the authenticated user and available plans. Do not create or modify files."
 ```
 
+## Open Design preflight and setup actions
+
+The daemon exposes project-scoped Figma MCP setup helpers for the Web/Electron
+UI:
+
+- `POST /api/projects/:id/figma/preflight` checks the selected target and stores
+  `metadata.figmaPreflight`.
+- `POST /api/projects/:id/figma/mcp-action` accepts
+  `prepare_mcp_setup`, `start_mcp_login`, or `poll_mcp_status`.
+
+Codex CLI currently exposes `codex mcp login <name>` as an interactive OAuth
+command and does not provide a help-documented flag that returns an OAuth URL
+for the daemon to open directly. Because of that, setup actions return a
+`manual_command` fallback with safe command text such as:
+
+```bash
+codex mcp add figma --url https://mcp.figma.com/mcp
+codex mcp login figma
+```
+
+Electron can still open external documentation or future OAuth URLs if Codex
+adds a non-interactive URL mode, but the current Web/Electron-safe path is:
+show the command, offer a copy button, then poll/recheck with
+`poll_mcp_status` after the user completes the terminal flow.
+
 ## Seat and permission notes
 
 - Read-only design context workflows can work with lower permissions.
