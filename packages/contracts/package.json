@@ -7,7 +7,13 @@
   "exports": {
     ".": {
       "types": "./src/index.ts",
+      "browser": "./src/index.browser.ts",
       "default": "./src/index.ts"
+    },
+    "./prompts/system": {
+      "types": "./src/prompts/system.ts",
+      "browser": "./src/prompts/system.browser.ts",
+      "default": "./src/prompts/system.ts"
     }
   },
   "types": "./src/index.ts",

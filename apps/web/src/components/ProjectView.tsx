@@ -21,7 +21,7 @@ import {
   fetchSkill,
   writeProjectTextFile,
 } from '../providers/registry';
-import { composeSystemPrompt } from '@open-design/contracts';
+import { composeSystemPrompt } from '@open-design/contracts/prompts/system';
 import { navigate } from '../router';
 import { agentDisplayName } from '../utils/agentLabels';
 import type { TodoItem } from '../runtime/todos';
