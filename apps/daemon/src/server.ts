@@ -31,6 +31,7 @@ import { listPromptTemplates, readPromptTemplate } from './prompt-templates.js';
 import { buildDocumentPreview } from './document-preview.js';
 import { lintArtifact, renderFindingsForAgent } from './lint-artifact.js';
 import { runFigmaMcpSetupAction, runFigmaPreflight } from './figma-preflight.js';
+import { saveFigmaSnapshotToProject } from './figma-snapshot.js';
 import { loadCraftSections } from './craft.js';
 import { generateMedia } from './media.js';
 import {
@@ -164,6 +165,12 @@ export function resolveDaemonResourceRoot({
 
 function resolveDaemonResourceDir(resourceRoot, segment, fallback) {
   return resourceRoot ? path.join(resourceRoot, segment) : fallback;
+}
+
+function queryString(value) {
+  if (typeof value === 'string' && value.length > 0) return value;
+  if (Array.isArray(value)) return queryString(value[0]);
+  return undefined;
 }
 
 const DAEMON_RESOURCE_ROOT = resolveDaemonResourceRoot();
@@ -765,6 +772,46 @@ export async function startServer({ port = 7456, returnServer = false } = {}) {
       sendApiError(res, 400, 'BAD_REQUEST', String(err?.message || err));
     }
   });
+
+  app.post(
+    '/api/projects/:id/figma/snapshot',
+    express.raw({ type: ['image/png', 'application/octet-stream'], limit: '32mb' }),
+    async (req, res) => {
+      try {
+        const sourceWidth = Number(req.query.sourceWidth ?? req.header('x-figma-source-width'));
+        const sourceHeight = Number(req.query.sourceHeight ?? req.header('x-figma-source-height'));
+        if (!Buffer.isBuffer(req.body) || req.body.length === 0) {
+          return sendApiError(res, 400, 'BAD_REQUEST', 'PNG body required');
+        }
+        const result = await saveFigmaSnapshotToProject({
+          projectsRoot: PROJECTS_DIR,
+          projectId: req.params.id,
+          request: {
+            pngBytes: req.body,
+            purpose: queryString(req.query.purpose) ?? req.header('x-figma-purpose') ?? undefined,
+            capturedAt: queryString(req.query.capturedAt) ?? req.header('x-figma-captured-at') ?? undefined,
+            sourceFileKey: queryString(req.query.sourceFileKey) ?? req.header('x-figma-source-file-key') ?? undefined,
+            sourceNodeId: queryString(req.query.sourceNodeId) ?? req.header('x-figma-source-node-id') ?? undefined,
+            sourceNodeName: queryString(req.query.sourceNodeName) ?? req.header('x-figma-source-node-name') ?? undefined,
+            sourceWidth,
+            sourceHeight,
+          },
+        });
+        /** @type {import('@open-design/contracts').SaveFigmaSnapshotResponse} */
+        const body = result;
+        res.status(result.snapshot.status === 'failed' ? 422 : 200).json(body);
+      } catch (err) {
+        const message = err?.message || 'snapshot export failed';
+        const status = /PNG|required|sourceWidth|sourceHeight|invalid/i.test(message) ? 400 : 500;
+        sendApiError(
+          res,
+          status,
+          status === 400 ? 'BAD_REQUEST' : 'INTERNAL_ERROR',
+          message,
+        );
+      }
+    },
+  );
 
   app.delete('/api/projects/:id', async (req, res) => {
     try {

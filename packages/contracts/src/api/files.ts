@@ -1,5 +1,6 @@
 import type { OkResponse } from '../common.js';
 import type { ArtifactKind, ArtifactManifest } from './artifacts.js';
+import type { FigmaSnapshotResult } from '../figma-result.js';
 
 export type ProjectFileKind =
   | 'html'
@@ -38,3 +39,31 @@ export interface ProjectFileResponse {
 export interface UploadProjectFilesResponse extends ProjectFilesResponse {}
 
 export interface DeleteProjectFileResponse extends OkResponse {}
+
+export interface FigmaSnapshotSource {
+  sourceFileKey?: string;
+  sourceNodeId?: string;
+  sourceNodeName?: string;
+  sourceWidth: number;
+  sourceHeight: number;
+}
+
+export interface FigmaSnapshotExportPlan {
+  scale: number;
+  desiredScale: number;
+  expectedMinWidth: number;
+  expectedMinHeight: number;
+  maxLongestEdge: number;
+  constraint: {
+    type: 'SCALE';
+    value: number;
+  };
+  degraded: boolean;
+  warnings: string[];
+}
+
+export interface SaveFigmaSnapshotResponse {
+  snapshot: FigmaSnapshotResult;
+  file?: ProjectFile;
+  exportPlan: FigmaSnapshotExportPlan;
+}
