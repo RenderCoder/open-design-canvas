@@ -106,7 +106,24 @@ Agents should return a structured `figma_native_result` envelope at the end of a
     "screenshot": "passed",
     "variables": "passed",
     "autoLayout": "passed",
-    "semanticNames": "passed"
+    "semanticNames": "passed",
+    "textReadability": "passed",
+    "textOverlap": "passed"
+  },
+  "readabilityCheck": {
+    "status": "passed",
+    "repairAttempts": 0,
+    "fixedNodeIds": [],
+    "remainingNodeIds": [],
+    "ignoredCount": 0,
+    "summary": "No text-text overlap detected after lint."
+  },
+  "textOverlapCheck": {
+    "status": "passed",
+    "repairAttempts": 0,
+    "fixedNodeIds": [],
+    "remainingNodeIds": [],
+    "ignoredCount": 0
   },
   "knownIssues": [],
   "nextIteration": ["Add mobile variant"]
@@ -128,6 +145,26 @@ Recommended fields:
 - `knownIssues` and `nextIteration`.
 
 The seed JSON Schema lives at [`.ai/figma-codex/schemas/figma-native-result.schema.json`](../../.ai/figma-codex/schemas/figma-native-result.schema.json). Later implementation should either promote that schema into project-owned code or generate runtime validation from it.
+
+## Text Readability Canvas Lint
+
+Figma-native runs should use the shared text readability vocabulary from `packages/contracts/src/figma-canvas-lint.ts`. The rule set is intentionally deterministic so prompts, mocked tests, and later MCP probes can report the same codes.
+
+Check only visible Figma `TEXT` nodes. A text node is skipped when it is hidden, fully transparent, has missing/zero-sized bounds, or is explicitly ignored with the layer name marker `od-lint-ignore:text-overlap` or an equivalent node metadata flag. The report must include the ignored count; ignored collisions use code `ignored-text-overlap` with `severity: "info"`.
+
+Do not fail this lint for text overlapping non-text elements such as frames, rectangles, vectors, images, decorative shapes, or background fills. Those overlaps can be intentional design choices and are covered by visual review, not the default text-text readability gate.
+
+Text-text rules:
+
+| Code | Severity | Rule |
+| --- | --- | --- |
+| `text-text-overlap` | `error` | Two visible, non-ignored `TEXT` bounds intersect and the intersection area is at least 3% of the smaller text box. For display/title/subtitle/body hierarchy pairs, use the stricter 2% threshold. |
+| `text-too-close` | `warning` | Two visible, non-ignored `TEXT` bounds do not overlap, but vertical spacing between stacked text is less than one line-height of the relevant text pair. |
+| `ignored-text-overlap` | `info` | Text nodes overlap but at least one involved node is marked with the ignore marker or metadata. Count and report these, but do not fail the run. |
+
+Use `checks.textReadability` for the overall gate and `checks.textOverlap` for the overlap-specific subcheck. Results should include affected node IDs, concise text previews only, the measured overlap or gap, and the threshold used.
+
+Generation flow must run this lint after the initial canvas write. When `text-text-overlap` fails, attempt repair before final delivery in this order: increase Auto Layout spacing or container height, move later text blocks, then adjust text box width/line-height/font size only when needed. Retry lint after each repair and stop after at most 2 repair attempts. Remaining failures must be reported with `checks.textOverlap: "failed"`, `textOverlapCheck.remainingNodeIds`, and an `issues[]` entry using `check: "textOverlap"`.
 
 ## MCP Events
 

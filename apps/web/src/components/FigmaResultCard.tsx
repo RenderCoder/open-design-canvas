@@ -132,6 +132,18 @@ export function resultWarnings(result: FigmaNativeResult): string[] {
   if (!hasCheck(result, 'variables')) {
     warnings.push('Variable/token check was not reported');
   }
+  if (!hasCheck(result, 'textReadability')) {
+    warnings.push('Text readability check was not reported');
+  }
+  if (!hasCheck(result, 'textOverlap')) {
+    warnings.push('Text overlap check was not reported');
+  }
+  if (result.textOverlapCheck?.repairAttempts && result.textOverlapCheck.repairAttempts > 0) {
+    warnings.push(`Text overlap repair attempts: ${result.textOverlapCheck.repairAttempts}`);
+  }
+  if (result.textOverlapCheck?.remainingNodeIds?.length) {
+    warnings.push(`${result.textOverlapCheck.remainingNodeIds.length} text overlap issue${result.textOverlapCheck.remainingNodeIds.length === 1 ? '' : 's'} remain`);
+  }
   return warnings;
 }
 

@@ -52,8 +52,9 @@ A single real editable Figma-native product screen or composed view. Not HTML. N
 5. Plan one screen, its sections, and component reuse.
 6. Use `use_figma` to write native canvas.
 7. Validate with metadata, screenshot and variable defs.
-8. Run canvas lint.
-9. Return structured result report.
+8. Run canvas lint, including the `text-text-overlap` text readability check.
+9. If text overlap fails, attempt repair before delivery and report `textOverlapCheck`.
+10. Return structured result report.
 
 ## Must not
 

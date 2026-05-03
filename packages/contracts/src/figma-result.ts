@@ -23,6 +23,7 @@ export interface FigmaResultIssue {
   severity?: 'info' | 'warning' | 'error';
   message: string;
   nodeId?: string;
+  nodeIds?: string[];
   check?: string;
   [key: string]: unknown;
 }
@@ -32,6 +33,16 @@ export interface FigmaResultMcpEvent {
   tool?: string;
   status?: string;
   nodeId?: string;
+  [key: string]: unknown;
+}
+
+export interface FigmaReadabilityCheckResult {
+  status: FigmaCheckStatus;
+  repairAttempts?: number;
+  fixedNodeIds?: string[];
+  remainingNodeIds?: string[];
+  ignoredCount?: number;
+  summary?: string;
   [key: string]: unknown;
 }
 
@@ -49,6 +60,8 @@ export interface FigmaNativeResult {
   styles: string[];
   hardcodedValues: unknown[];
   checks: Record<string, FigmaCheckStatus | string>;
+  readabilityCheck?: FigmaReadabilityCheckResult;
+  textOverlapCheck?: FigmaReadabilityCheckResult;
   issues: FigmaResultIssue[];
   nextActions: string[];
   mcpEvents: FigmaResultMcpEvent[];

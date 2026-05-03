@@ -1,7 +1,7 @@
-import type { ProjectFile } from './files';
-import type { FigmaOutputSettings, FigmaTarget } from './projects';
-import type { FigmaPreflightSummary } from '../figma-preflight';
-import type { FigmaNativeResult } from '../figma-result';
+import type { ProjectFile } from './files.js';
+import type { FigmaOutputSettings, FigmaTarget } from './projects.js';
+import type { FigmaPreflightSummary } from '../figma-preflight.js';
+import type { FigmaNativeResult } from '../figma-result.js';
 
 export type ChatRole = 'user' | 'assistant';
 

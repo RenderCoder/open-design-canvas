@@ -117,6 +117,14 @@
         },
         "semanticNames": {
           "$ref": "#/$defs/checkStatus"
+        },
+        "textReadability": {
+          "$ref": "#/$defs/checkStatus",
+          "description": "Overall visible TEXT node readability gate."
+        },
+        "textOverlap": {
+          "$ref": "#/$defs/checkStatus",
+          "description": "TEXT-vs-TEXT overlap subcheck. Non-text overlaps are not failures."
         }
       },
       "additionalProperties": true
@@ -155,6 +163,12 @@
           }
         ]
       }
+    },
+    "readabilityCheck": {
+      "$ref": "#/$defs/readabilityCheck"
+    },
+    "textOverlapCheck": {
+      "$ref": "#/$defs/readabilityCheck"
     },
     "knownIssues": {
       "type": "array",
@@ -209,6 +223,42 @@
         },
         "height": {
           "type": "number"
+        }
+      },
+      "additionalProperties": true
+    },
+    "readabilityCheck": {
+      "type": "object",
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/checkStatus"
+        },
+        "repairAttempts": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 2
+        },
+        "fixedNodeIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "remainingNodeIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "ignoredCount": {
+          "type": "number",
+          "minimum": 0
+        },
+        "summary": {
+          "type": "string"
         }
       },
       "additionalProperties": true

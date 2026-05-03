@@ -43,7 +43,34 @@ describe('FigmaResultCard', () => {
       'Metadata check was not reported',
       'Screenshot check was not reported',
       'Variable/token check was not reported',
+      'Text readability check was not reported',
+      'Text overlap check was not reported',
     ]);
+  });
+
+  it('surfaces text overlap repair status', () => {
+    const parsed = normalizeFigmaNativeResult({
+      kind: 'figma_native_result',
+      status: 'partial',
+      checks: {
+        metadata: 'passed',
+        screenshot: 'passed',
+        variables: 'passed',
+        textReadability: 'failed',
+        textOverlap: 'failed',
+      },
+      reusedComponents: [{ name: 'Card' }],
+      textOverlapCheck: {
+        status: 'failed',
+        repairAttempts: 2,
+        remainingNodeIds: ['7:1', '7:2'],
+      },
+    });
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) throw new Error(parsed.error);
+
+    expect(resultWarnings(parsed.result)).toContain('Text overlap repair attempts: 2');
+    expect(resultWarnings(parsed.result)).toContain('2 text overlap issues remain');
   });
 
   it('renders a figma_result event inside an assistant message', () => {
@@ -69,6 +96,61 @@ describe('FigmaResultCard', () => {
     expect(markup).toContain('class="figma-result-card"');
     expect(markup).toContain('Open Figma file');
     expect(markup).toContain('Landing / Desktop / 1440');
+  });
+
+  it('renders a mocked text overlap issue from a figma_result event', () => {
+    const parsed = normalizeFigmaNativeResult({
+      kind: 'figma_native_result',
+      status: 'partial',
+      fileUrl: 'https://www.figma.com/design/demo-file/Product',
+      pageName: 'Readability repair',
+      rootFrame: { name: 'Screen / Desktop', nodeId: '1:1' },
+      reusedComponents: [{ name: 'Card' }],
+      checks: {
+        metadata: 'passed',
+        screenshot: 'passed',
+        variables: 'passed',
+        textReadability: 'failed',
+        textOverlap: 'failed',
+      },
+      textOverlapCheck: {
+        status: 'failed',
+        repairAttempts: 1,
+        remainingNodeIds: ['2:1', '2:2'],
+      },
+      issues: [
+        {
+          severity: 'error',
+          check: 'textOverlap',
+          message: 'Visible title and subtitle overlap after the first repair attempt.',
+          nodeIds: ['2:1', '2:2'],
+        },
+      ],
+    });
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) throw new Error(parsed.error);
+
+    const message: ChatMessage = {
+      id: 'assistant-overlap',
+      role: 'assistant',
+      content: '',
+      events: [{ kind: 'figma_result', result: parsed.result }],
+    };
+
+    const markup = renderToStaticMarkup(
+      <AssistantMessage
+        message={message}
+        streaming={false}
+        projectId={null}
+      />,
+    );
+
+    expect(markup).toContain('Readability repair');
+    expect(markup).toContain('text Readability');
+    expect(markup).toContain('text Overlap');
+    expect(markup).toContain('Text overlap repair attempts: 1');
+    expect(markup).toContain('2 text overlap issues remain');
+    expect(markup).toContain('Visible title and subtitle overlap after the first repair attempt.');
   });
 
 });

@@ -1,4 +1,4 @@
-import type { FigmaTarget } from './api/projects';
+import type { FigmaTarget } from './api/projects.js';
 
 export const FIGMA_PREFLIGHT_STEP_CODES = [
   'codex_cli_unavailable',

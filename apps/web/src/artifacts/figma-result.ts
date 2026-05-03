@@ -1,6 +1,7 @@
 import type {
   FigmaCheckStatus,
   FigmaNativeResult,
+  FigmaReadabilityCheckResult,
   FigmaResultComponentRef,
   FigmaResultIssue,
   FigmaResultMcpEvent,
@@ -11,6 +12,7 @@ import type {
 export type {
   FigmaCheckStatus,
   FigmaNativeResult,
+  FigmaReadabilityCheckResult,
   FigmaResultComponentRef,
   FigmaResultIssue,
   FigmaResultMcpEvent,
@@ -96,6 +98,8 @@ export function normalizeFigmaNativeResult(value: unknown): FigmaNativeResultPar
       styles: stringArray(value.styles ?? value.stylesUsed),
       hardcodedValues: Array.isArray(value.hardcodedValues) ? value.hardcodedValues : [],
       checks: checksRecord(value.checks),
+      readabilityCheck: readabilityCheck(value.readabilityCheck),
+      textOverlapCheck: readabilityCheck(value.textOverlapCheck),
       issues: issueArray(value.issues ?? value.knownIssues),
       nextActions: stringArray(value.nextActions ?? value.nextIteration),
       mcpEvents: objectArray(value.mcpEvents),
@@ -160,6 +164,21 @@ function checksRecord(value: unknown): Record<string, FigmaCheckStatus | string>
   return out;
 }
 
+function readabilityCheck(value: unknown): FigmaReadabilityCheckResult | undefined {
+  if (!isRecord(value)) return undefined;
+  const rawStatus = typeof value.status === 'string' ? value.status : 'unknown';
+  const status = CHECK_STATUS_VALUES.has(rawStatus) ? (rawStatus as FigmaCheckStatus) : 'unknown';
+  return {
+    ...value,
+    status,
+    repairAttempts: numberField(value.repairAttempts),
+    fixedNodeIds: stringArray(value.fixedNodeIds),
+    remainingNodeIds: stringArray(value.remainingNodeIds),
+    ignoredCount: numberField(value.ignoredCount),
+    summary: stringField(value.summary),
+  };
+}
+
 function issueArray(value: unknown): FigmaResultIssue[] {
   if (!Array.isArray(value)) return [];
   return value
@@ -183,6 +202,10 @@ function stringArray(value: unknown): string[] {
 
 function stringField(value: unknown): string | undefined {
   return typeof value === 'string' && value.length > 0 ? value : undefined;
+}
+
+function numberField(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

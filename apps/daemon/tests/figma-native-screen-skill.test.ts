@@ -41,6 +41,8 @@ describe('shipped figma-native-screen skill', () => {
     expect(skill?.body).toContain('references/result-report.md');
     expect(skill?.body).toContain('single real editable Figma-native product screen');
     expect(skill?.body).toContain('use_figma');
+    expect(skill?.body).toContain('text-text-overlap');
+    expect(skill?.body).toContain('textOverlapCheck');
     expect(skill?.body).toContain('structured result report');
   });
 });

@@ -17,6 +17,10 @@ Severity mapping:
 - Variables/styles are used when available.
 - No dominant hardcoded random hex palette.
 - Metadata and screenshot validation were attempted.
+- Text readability check was attempted after the initial layout. Check only visible TEXT nodes and do not fail for text overlapping images, backgrounds, shapes, vectors, rectangles, or frames.
+- `text-text-overlap`: fail with `severity: "error"` when two visible, non-ignored TEXT bounding boxes intersect by at least 3% of the smaller text box, or 2% for display/title/subtitle/body hierarchy pairs.
+- `text-too-close`: warn with `severity: "warning"` when stacked visible TEXT nodes do not overlap but their vertical gap is below one line-height.
+- `ignored-text-overlap`: report with `severity: "info"` when overlapping text includes a node named or marked `od-lint-ignore:text-overlap`; include the ignored count.
 
 ## P1 — should pass
 

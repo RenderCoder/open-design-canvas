@@ -21,7 +21,24 @@ Canvas critique uses the same `figma_native_result` envelope as generation, with
     "screenshot": "passed",
     "variables": "passed",
     "autoLayout": "passed",
-    "semanticNames": "passed"
+    "semanticNames": "passed",
+    "textReadability": "passed",
+    "textOverlap": "passed"
+  },
+  "readabilityCheck": {
+    "status": "passed",
+    "repairAttempts": 0,
+    "fixedNodeIds": [],
+    "remainingNodeIds": [],
+    "ignoredCount": 0,
+    "summary": "No text-text overlap detected after lint."
+  },
+  "textOverlapCheck": {
+    "status": "passed",
+    "repairAttempts": 0,
+    "fixedNodeIds": [],
+    "remainingNodeIds": [],
+    "ignoredCount": 0
   },
   "issues": [
     {

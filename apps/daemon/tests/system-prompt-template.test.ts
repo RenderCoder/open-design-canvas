@@ -239,6 +239,14 @@ describe('composeSystemPrompt — figma-native directive', () => {
     expect(out).toContain('get_metadata');
     expect(out).toContain('get_screenshot');
     expect(out).toContain('get_variable_defs');
+    expect(out).toContain('text readability lint pass');
+    expect(out).toContain('text-text-overlap');
+    expect(out).toContain('Retry the lint after each repair');
+    expect(out).toContain('at most 2 repair attempts');
+    expect(out).toContain('"textReadability": "passed"');
+    expect(out).toContain('"textOverlap": "passed"');
+    expect(out).toContain('"readabilityCheck"');
+    expect(out).toContain('"textOverlapCheck"');
     expect(out).toContain('"kind": "figma_native_result"');
     expect(out).toContain('"checks"');
   });
@@ -356,6 +364,7 @@ describe('composeSystemPrompt — figma-native directive', () => {
     expect(out).toContain('get_screenshot');
     expect(out).toContain('get_variable_defs');
     expect(out).toContain('Do not emit a final `<artifact>` block for the Figma deliverable');
+    expect(out).toContain('textOverlapCheck');
     expect(out).toContain('"kind": "figma_native_result"');
   });
 

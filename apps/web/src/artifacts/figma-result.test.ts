@@ -64,6 +64,54 @@ describe('parseFigmaNativeResultText', () => {
     expect(parsed.result.nextActions).toEqual(['Create mobile frame']);
   });
 
+  it('preserves structured readability check results', () => {
+    const parsed = normalizeFigmaNativeResult({
+      kind: 'figma_native_result',
+      status: 'partial',
+      checks: { textReadability: 'failed', textOverlap: 'failed' },
+      readabilityCheck: {
+        status: 'failed',
+        repairAttempts: 2,
+        fixedNodeIds: ['1:2'],
+        remainingNodeIds: ['1:3'],
+        ignoredCount: 1,
+        summary: 'One title/subtitle overlap remains after repair.',
+      },
+      textOverlapCheck: {
+        status: 'failed',
+        repairAttempts: 2,
+        remainingNodeIds: ['1:3'],
+      },
+      issues: [
+        {
+          severity: 'error',
+          check: 'textOverlap',
+          message: 'Visible text nodes overlap beyond the readability threshold.',
+          nodeIds: ['1:3', '1:4'],
+        },
+      ],
+    });
+
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) throw new Error(parsed.error);
+    expect(parsed.result.readabilityCheck).toMatchObject({
+      status: 'failed',
+      repairAttempts: 2,
+      fixedNodeIds: ['1:2'],
+      remainingNodeIds: ['1:3'],
+      ignoredCount: 1,
+    });
+    expect(parsed.result.textOverlapCheck).toMatchObject({
+      status: 'failed',
+      repairAttempts: 2,
+      remainingNodeIds: ['1:3'],
+    });
+    expect(parsed.result.issues[0]).toMatchObject({
+      check: 'textOverlap',
+      nodeIds: ['1:3', '1:4'],
+    });
+  });
+
   it('returns a safe error for malformed JSON envelopes', () => {
     const parsed = parseFigmaNativeResultText(
       '```figma_native_result\n{"kind":"figma_native_result","status":"completed"\n```',

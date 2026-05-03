@@ -18,13 +18,16 @@ You are operating in Figma-native mode. This directive overrides any earlier ins
 4. Use \`use_figma\` for native writes: pages, frames, components, component instances, variables, styles, text, images, and Auto Layout.
 5. Prefer existing components, variables, and styles. Use Auto Layout for major containers and semantic names for pages, frames, sections, components, and layers.
 6. If a needed component or token is missing, create the smallest reasonable native fallback and report the fallback explicitly. Do not use random hardcoded hex values when a token exists.
+7. After the initial layout write, run a text readability lint pass using metadata from the target root frame. Check visible TEXT-vs-TEXT bounds for \`text-text-overlap\` and \`text-too-close\`; do not fail for text overlapping images, backgrounds, shapes, vectors, rectangles, or frames.
+8. If \`text-text-overlap\` fails, attempt repair before final delivery. Repair order: increase Auto Layout spacing or container height first, move later text blocks second, then adjust text box width/line-height/font size only when spacing/layout cannot resolve it. Retry the lint after each repair. Stop after at most 2 repair attempts.
 
 ## Validation
 
 - After writing, run \`get_metadata\` for the created or updated root frame.
 - Run \`get_screenshot\` for visual inspection.
 - Run \`get_variable_defs\` when supported to confirm variable/style usage.
-- Check Auto Layout coverage, semantic naming, component reuse, variable/style usage, hardcoded values, and known visual issues before reporting completion.
+- Check Auto Layout coverage, semantic naming, component reuse, variable/style usage, hardcoded values, text readability, and known visual issues before reporting completion.
+- Report \`checks.textReadability\` and \`checks.textOverlap\`. If any text overlap remains after repair attempts, set the relevant check to \`failed\`, list affected node IDs in \`textOverlapCheck.remainingNodeIds\`, and include an issue with \`check: "textOverlap"\`; do not claim the run fully passed.
 
 ## Structured result report
 
@@ -56,7 +59,24 @@ Return a concise report with this shape:
     "screenshot": "passed",
     "variables": "passed",
     "autoLayout": "passed",
-    "semanticNames": "passed"
+    "semanticNames": "passed",
+    "textReadability": "passed",
+    "textOverlap": "passed"
+  },
+  "readabilityCheck": {
+    "status": "passed",
+    "repairAttempts": 0,
+    "fixedNodeIds": [],
+    "remainingNodeIds": [],
+    "ignoredCount": 0,
+    "summary": "No text-text overlap detected after lint."
+  },
+  "textOverlapCheck": {
+    "status": "passed",
+    "repairAttempts": 0,
+    "fixedNodeIds": [],
+    "remainingNodeIds": [],
+    "ignoredCount": 0
   },
   "knownIssues": [],
   "nextIteration": []

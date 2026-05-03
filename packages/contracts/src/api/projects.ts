@@ -1,5 +1,5 @@
-import type { ChatMessage } from './chat';
-import type { FigmaPreflightSummary } from '../figma-preflight';
+import type { ChatMessage } from './chat.js';
+import type { FigmaPreflightSummary } from '../figma-preflight.js';
 
 export type ProjectKind =
   | 'prototype'
