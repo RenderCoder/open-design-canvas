@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, isAbsolute, resolve } from "node:path";
 
-import { BrowserWindow } from "electron";
+import { BrowserWindow, shell } from "electron";
 
 const PENDING_POLL_MS = 120;
 const RUNNING_POLL_MS = 2000;
@@ -64,6 +64,7 @@ export type DesktopRuntime = {
 
 export type DesktopRuntimeOptions = {
   discoverUrl(): Promise<string | null>;
+  openExternal?: (url: string) => Promise<unknown>;
 };
 
 const MAC_WINDOW_CHROME =
@@ -163,6 +164,37 @@ function installWindowChromeCssHook(window: BrowserWindow): void {
   });
 }
 
+export function shouldOpenExternally(requestUrl: string, appUrl: string | null): boolean {
+  let incoming: URL;
+  try {
+    incoming = new URL(requestUrl);
+  } catch {
+    return false;
+  }
+
+  if (incoming.protocol === "http:" || incoming.protocol === "https:") {
+    if (appUrl == null) return true;
+    try {
+      const current = new URL(appUrl);
+      return incoming.origin !== current.origin;
+    } catch {
+      return true;
+    }
+  }
+
+  return incoming.protocol === "figma:" || incoming.protocol === "mailto:";
+}
+
+async function openExternalUrl(
+  requestUrl: string,
+  appUrl: string | null,
+  opener: (url: string) => Promise<unknown>,
+): Promise<boolean> {
+  if (!shouldOpenExternally(requestUrl, appUrl)) return false;
+  await opener(requestUrl);
+  return true;
+}
+
 function showWindowButtons(window: BrowserWindow): void {
   if (process.platform !== "darwin" || window.isDestroyed()) return;
   window.setWindowButtonVisibility(true);
@@ -170,6 +202,7 @@ function showWindowButtons(window: BrowserWindow): void {
 
 export async function createDesktopRuntime(options: DesktopRuntimeOptions): Promise<DesktopRuntime> {
   const consoleEntries: DesktopConsoleEntry[] = [];
+  const openExternal = options.openExternal ?? ((url: string) => shell.openExternal(url));
   const window = new BrowserWindow({
     height: 900,
     show: true,
@@ -190,6 +223,20 @@ export async function createDesktopRuntime(options: DesktopRuntimeOptions): Prom
 
   window.on("focus", () => showWindowButtons(window));
   window.on("blur", () => showWindowButtons(window));
+  window.webContents.setWindowOpenHandler(({ url }) => {
+    if (!shouldOpenExternally(url, currentUrl)) return { action: "allow" };
+    void openExternalUrl(url, currentUrl, openExternal).catch((error: unknown) => {
+      console.error("desktop external URL open failed", error);
+    });
+    return { action: "deny" };
+  });
+  window.webContents.on("will-navigate", (event, url) => {
+    if (!shouldOpenExternally(url, currentUrl)) return;
+    event.preventDefault();
+    void openExternalUrl(url, currentUrl, openExternal).catch((error: unknown) => {
+      console.error("desktop external URL open failed", error);
+    });
+  });
 
   (window.webContents as any).on("console-message", (event: { level?: number | string; message?: string }) => {
     const level = typeof event.level === "number" ? mapConsoleLevel(event.level) : (event.level ?? "log");

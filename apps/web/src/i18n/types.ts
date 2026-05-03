@@ -424,10 +424,12 @@ export interface Dict {
   'figmaWizard.check': string;
   'figmaWizard.prepareSetup': string;
   'figmaWizard.authorize': string;
+  'figmaWizard.openAuthorization': string;
   'figmaWizard.recheck': string;
   'figmaWizard.checkWrite': string;
   'figmaWizard.copyCommand': string;
   'figmaWizard.copied': string;
+  'figmaWizard.waitingAuth': string;
   'figmaWizard.blockedCodex': string;
   'figmaWizard.blockedMcp': string;
   'figmaWizard.blockedAuth': string;

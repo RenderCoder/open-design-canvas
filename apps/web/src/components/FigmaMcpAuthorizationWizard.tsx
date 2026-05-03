@@ -17,6 +17,7 @@ interface Props {
   target?: FigmaTarget;
   preflight?: FigmaPreflightSummary;
   compact?: boolean;
+  initialAction?: FigmaMcpSetupAction | null;
   onProjectUpdate?: (project: Project) => void;
 }
 
@@ -44,13 +45,15 @@ export function FigmaMcpAuthorizationWizard({
   target,
   preflight,
   compact = false,
+  initialAction = null,
   onProjectUpdate,
 }: Props) {
   const t = useT();
   const [busy, setBusy] = useState<string | null>(null);
-  const [action, setAction] = useState<FigmaMcpSetupAction | null>(null);
+  const [action, setAction] = useState<FigmaMcpSetupAction | null>(initialAction);
   const [localPreflight, setLocalPreflight] = useState<FigmaPreflightSummary | undefined>(preflight);
   const [copied, setCopied] = useState(false);
+  const [waitingForAuth, setWaitingForAuth] = useState(false);
   const currentPreflight = localPreflight ?? preflight;
   const steps = useMemo(
     () => buildWizardSteps(currentPreflight, busy != null),
@@ -90,6 +93,10 @@ export function FigmaMcpAuthorizationWizard({
       if (result) {
         setAction(result.action);
         if (result.action.preflight) setLocalPreflight(result.action.preflight);
+        if (kind === 'start_mcp_login' && result.action.canOpenExternal && result.action.url) {
+          openExternalUrl(result.action.url);
+          setWaitingForAuth(true);
+        }
         onProjectUpdate?.(result.project);
       }
     } finally {
@@ -103,6 +110,12 @@ export function FigmaMcpAuthorizationWizard({
     await copyText(command);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1500);
+  }
+
+  function openAuthorizationUrl() {
+    if (!action?.url) return;
+    openExternalUrl(action.url);
+    setWaitingForAuth(true);
   }
 
   return (
@@ -214,6 +227,20 @@ export function FigmaMcpAuthorizationWizard({
             <span>{copied ? t('figmaWizard.copied') : t('figmaWizard.copyCommand')}</span>
           </button>
         </div>
+      ) : null}
+
+      {action?.url && action.canOpenExternal ? (
+        <div className="figma-mcp-command">
+          <code>{action.url}</code>
+          <button type="button" className="icon-btn" onClick={openAuthorizationUrl}>
+            <Icon name="link" size={13} />
+            <span>{t('figmaWizard.openAuthorization')}</span>
+          </button>
+        </div>
+      ) : null}
+
+      {waitingForAuth ? (
+        <p className="figma-mcp-blocker">{t('figmaWizard.waitingAuth')}</p>
       ) : null}
 
       {currentPreflight && !currentPreflight.canGenerate ? (
@@ -370,4 +397,8 @@ async function copyText(text: string): Promise<void> {
       document.body.removeChild(textarea);
     }
   }
+}
+
+function openExternalUrl(url: string): void {
+  window.open(url, '_blank', 'noopener,noreferrer');
 }

@@ -151,4 +151,32 @@ describe('FigmaMcpAuthorizationWizard', () => {
     expect(markup).toContain('Figma needs authorization');
     expect(markup).toContain('Developer details');
   });
+
+  it('can render a future Electron external authorization action without exposing raw JSONL', () => {
+    const markup = renderToStaticMarkup(
+      <FigmaMcpAuthorizationWizard
+        projectId="project-1"
+        target={target}
+        preflight={preflight({
+          overallStatus: 'auth_required',
+          userAction: 'authorize_figma',
+        })}
+        initialAction={{
+          kind: 'start_mcp_login',
+          status: 'needs_retry',
+          canOpenExternal: true,
+          url: 'https://mcp.figma.com/oauth/authorize?state=redacted',
+          safeDetails: {
+            reason: 'codex_mcp_login_external_url',
+            retryAfterMs: 2000,
+          },
+        }}
+      />,
+    );
+
+    expect(markup).toContain('Authorize Figma');
+    expect(markup).toContain('Open authorization');
+    expect(markup).toContain('https://mcp.figma.com/oauth/authorize?state=redacted');
+    expect(markup).not.toContain('jsonl');
+  });
 });

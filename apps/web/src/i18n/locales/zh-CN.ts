@@ -403,10 +403,13 @@ export const zhCN: Dict = {
   'figmaWizard.check': '开始检查',
   'figmaWizard.prepareSetup': '准备配置',
   'figmaWizard.authorize': '授权 Figma',
+  'figmaWizard.openAuthorization': '打开授权',
   'figmaWizard.recheck': '我已完成，重新检查',
   'figmaWizard.checkWrite': '检查写权限',
   'figmaWizard.copyCommand': '复制命令',
   'figmaWizard.copied': '已复制',
+  'figmaWizard.waitingAuth':
+    '正在等待授权完成。浏览器授权流程结束后，回到这里重新检查。',
   'figmaWizard.blockedCodex':
     '还不能使用 Codex CLI。请先安装或打开 Codex，再检查 Figma 访问。',
   'figmaWizard.blockedMcp':

@@ -75,7 +75,11 @@ export interface FigmaMcpSetupAction {
   safeDetails?: {
     serverName?: string;
     expectedMcpUrl?: string;
-    reason?: string;
+    reason?:
+      | 'codex_mcp_add_requires_local_cli'
+      | 'codex_mcp_login_is_interactive'
+      | 'codex_mcp_login_external_url'
+      | string;
     retryAfterMs?: number;
   };
 }

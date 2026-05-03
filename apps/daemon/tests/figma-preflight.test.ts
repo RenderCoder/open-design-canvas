@@ -249,6 +249,7 @@ describe('runFigmaMcpSetupAction', () => {
     assert.equal(action.canOpenExternal, false);
     assert.equal(action.command, 'codex mcp login figma');
     assert.equal(action.safeDetails?.reason, 'codex_mcp_login_is_interactive');
+    assert.equal(action.url, undefined);
     assert.equal(action.preflight?.userAction, 'authorize_figma');
   });
 

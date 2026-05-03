@@ -159,6 +159,15 @@ adds a non-interactive URL mode, but the current Web/Electron-safe path is:
 show the command, offer a copy button, then poll/recheck with
 `poll_mcp_status` after the user completes the terminal flow.
 
+In the desktop and packaged Electron runtimes, external HTTP(S), `figma:`, and
+`mailto:` targets opened by the web UI are handed to the system browser instead
+of navigating the Open Design app window. This keeps the app window on the
+authorization wizard while the user completes a browser-based OAuth flow. When
+Codex exposes an OAuth URL in a future non-interactive login action, the same
+wizard can show an "Open authorization" button, open that URL externally, and
+keep polling with `poll_mcp_status`. Until then, `codex mcp login figma`
+remains a copyable manual command fallback for both Web and Electron.
+
 ## Mocked CI coverage matrix
 
 Figma OAuth and real canvas writes are intentionally not required in default CI.

@@ -412,10 +412,13 @@ export const en: Dict = {
   'figmaWizard.check': 'Check',
   'figmaWizard.prepareSetup': 'Prepare setup',
   'figmaWizard.authorize': 'Authorize Figma',
+  'figmaWizard.openAuthorization': 'Open authorization',
   'figmaWizard.recheck': 'I finished, recheck',
   'figmaWizard.checkWrite': 'Check write permission',
   'figmaWizard.copyCommand': 'Copy command',
   'figmaWizard.copied': 'Copied',
+  'figmaWizard.waitingAuth':
+    'Waiting for authorization to finish. Return here and recheck after the browser flow completes.',
   'figmaWizard.blockedCodex':
     'Codex CLI is not available yet. Install or open Codex before checking Figma access.',
   'figmaWizard.blockedMcp':

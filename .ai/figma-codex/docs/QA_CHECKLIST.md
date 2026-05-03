@@ -36,6 +36,8 @@
 - [ ] 授权向导测试覆盖：Codex CLI 缺失、MCP 未添加、MCP URL 错误、OAuth 未完成或取消、target URL 错误、文件不可读、无编辑权限、写探针成功。
 - [ ] 生成门禁测试覆盖：target 变化导致 preflight stale 时不能开始 Figma-native 生成。
 - [ ] Web/Electron fallback 文案测试覆盖：返回可复制的 `codex mcp add` / `codex mcp login` 手动命令，不要求用户阅读 JSONL。
+- [ ] Electron runtime 会把外部授权/文档链接交给系统浏览器，不替换 Open Design 主窗口。
+- [ ] Codex 只返回交互式 login 命令时，Electron 和 Web 都保留复制命令 + 重新检查 fallback。
 - [ ] 写权限探针重复运行时复用 `ODC MCP Probe` / `ODC MCP Write Probe`，不会无限创建测试节点。
 - [ ] 探针清理说明只允许删除明确由 Open Design Canvas 创建的 probe page/frame。
 - [ ] 真实 smoke test 前检查 MCP connected。
