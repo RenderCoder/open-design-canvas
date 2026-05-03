@@ -3,6 +3,11 @@ import { createHtmlArtifactManifest, inferLegacyManifest } from '../artifacts/ma
 import { createArtifactParser } from '../artifacts/parser';
 import { parseFigmaNativeResultText } from '../artifacts/figma-result';
 import { useT } from '../i18n';
+import {
+  figmaPreflightFingerprint,
+  figmaTargetFingerprint,
+  validateFigmaPreflightForTarget,
+} from '@open-design/contracts';
 import { streamMessage } from '../providers/anthropic';
 import {
   fetchChatRunStatus,
@@ -820,6 +825,9 @@ export function ProjectView({
           skillId: project.skillId ?? null,
           designSystemId: project.designSystemId ?? null,
           attachments: attachments.map((a) => a.path),
+          figmaTarget: figmaTargetEnabled ? project.metadata?.figmaTarget ?? null : null,
+          figmaOutputSettings: figmaTargetEnabled ? project.metadata?.figmaOutputSettings ?? null : null,
+          figmaPreflight: figmaTargetEnabled ? project.metadata?.figmaPreflight ?? null : null,
           model: choice?.model ?? null,
           reasoning: choice?.reasoning ?? null,
           onRunCreated: (runId) => {
@@ -862,7 +870,9 @@ export function ProjectView({
       composedSystemPrompt,
       onTouchProject,
       project.id,
+      project.metadata,
       projectFiles,
+      figmaTargetEnabled,
       refreshProjectFiles,
       persistMessage,
       persistMessageById,
@@ -1081,6 +1091,9 @@ export function ProjectView({
     activeSkill?.mode === 'figma' ||
     activeSkill?.surface === 'figma' ||
     project.metadata?.figmaOutputSettings?.outputMode === 'figma-native';
+  const figmaPreflightGate = figmaTargetEnabled
+    ? validateFigmaPreflightForTarget(project.metadata?.figmaTarget, project.metadata?.figmaPreflight)
+    : { ok: true, reason: 'not_figma_native' as const };
 
   const handleFigmaTargetChange = useCallback(
     (next: {
@@ -1092,6 +1105,15 @@ export function ProjectView({
         figmaTarget: next.figmaTarget,
         figmaOutputSettings: next.figmaOutputSettings,
       };
+      const nextTargetFingerprint = figmaTargetFingerprint(next.figmaTarget);
+      const currentPreflightFingerprint = figmaPreflightFingerprint(project.metadata?.figmaPreflight);
+      if (
+        project.metadata?.figmaPreflight &&
+        nextTargetFingerprint &&
+        currentPreflightFingerprint === nextTargetFingerprint
+      ) {
+        metadata.figmaPreflight = project.metadata.figmaPreflight;
+      }
       const updated: Project = { ...project, metadata, updatedAt: Date.now() };
       onProjectChange(updated);
       void patchProject(project.id, { metadata });
@@ -1181,6 +1203,7 @@ export function ProjectView({
           figmaTarget={project.metadata?.figmaTarget}
           figmaOutputSettings={project.metadata?.figmaOutputSettings}
           figmaPreflight={project.metadata?.figmaPreflight}
+          figmaPreflightGate={figmaPreflightGate}
           onFigmaTargetChange={handleFigmaTargetChange}
           onProjectUpdate={onProjectChange}
           figmaDesignSystemTitle={activeDesignSystemTitle}

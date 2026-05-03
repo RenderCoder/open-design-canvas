@@ -5,9 +5,12 @@ import {
   FIGMA_PREFLIGHT_BLOCKING_STEP_CODES,
   FIGMA_PREFLIGHT_STEP_DEFAULTS,
   FIGMA_PREFLIGHT_STEP_CODES,
+  figmaPreflightFingerprint,
   figmaPreflightMessageKey,
+  figmaTargetFingerprint,
   isFigmaPreflightBlockingStepCode,
   isFigmaPreflightStepCode,
+  validateFigmaPreflightForTarget,
   type FigmaPreflightStepCode,
   type FigmaPreflightSummary,
 } from '@open-design/contracts';
@@ -106,6 +109,31 @@ describe('Figma preflight contract', () => {
     expect(FIGMA_PREFLIGHT_STEP_DEFAULTS.write_probe_passed).toEqual({
       overallStatus: 'ready',
       userAction: 'none',
+    });
+  });
+
+  it('validates ready preflight against the exact Figma target fingerprint', () => {
+    const preflight = readyFixture satisfies FigmaPreflightSummary;
+    const target = {
+      mode: 'existing-file' as const,
+      fileUrl: `https://figma.com/design/${preflight.target.fileKey}/Demo`,
+      pageName: preflight.target.pageName,
+    };
+
+    expect(figmaTargetFingerprint(target)).toBe(figmaPreflightFingerprint(preflight));
+    expect(validateFigmaPreflightForTarget(target, preflight)).toMatchObject({
+      ok: true,
+      reason: 'ready',
+    });
+    expect(
+      validateFigmaPreflightForTarget(
+        { ...target, fileUrl: 'https://figma.com/design/other/Demo?node-id=1-2' },
+        preflight,
+      ),
+    ).toMatchObject({ ok: false, reason: 'target_mismatch' });
+    expect(validateFigmaPreflightForTarget(target, undefined)).toMatchObject({
+      ok: false,
+      reason: 'missing_preflight',
     });
   });
 });

@@ -10,6 +10,7 @@ import type { Dict } from '../i18n/types';
 import { projectRawUrl, uploadProjectFiles } from "../providers/registry";
 import type {
   ChatAttachment,
+  FigmaPreflightGateResult,
   FigmaPreflightSummary,
   FigmaOutputSettings,
   FigmaTarget,
@@ -41,6 +42,7 @@ interface Props {
   figmaTarget?: FigmaTarget;
   figmaOutputSettings?: FigmaOutputSettings;
   figmaPreflight?: FigmaPreflightSummary;
+  figmaPreflightGate?: FigmaPreflightGateResult;
   onFigmaTargetChange?: (next: {
     figmaTarget: FigmaTarget;
     figmaOutputSettings: FigmaOutputSettings;
@@ -83,6 +85,7 @@ export const ChatComposer = forwardRef<ChatComposerHandle, Props>(
       figmaTarget,
       figmaOutputSettings,
       figmaPreflight,
+      figmaPreflightGate,
       onFigmaTargetChange,
       onProjectUpdate,
       figmaDesignSystemTitle,
@@ -297,7 +300,7 @@ export const ChatComposer = forwardRef<ChatComposerHandle, Props>(
           ? t('chat.figmaTargetExisting')
           : t('chat.figmaTargetUnset');
     const figmaGenerationBlocked =
-      figmaTargetEnabled && !figmaPreflight?.canGenerate;
+      figmaTargetEnabled && figmaPreflightGate?.ok !== true;
     const sendDisabled = !draft.trim() || figmaGenerationBlocked;
 
     // The @-picker treats the project listing as path-shaped (path + size).

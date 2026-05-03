@@ -102,6 +102,20 @@ export interface FigmaPreflightResponse {
   preflight: FigmaPreflightSummary;
 }
 
+export type FigmaPreflightGateReason =
+  | 'ready'
+  | 'not_figma_native'
+  | 'missing_target'
+  | 'missing_preflight'
+  | 'target_mismatch'
+  | 'not_ready';
+
+export interface FigmaPreflightGateResult {
+  ok: boolean;
+  reason: FigmaPreflightGateReason;
+  fingerprint?: string;
+}
+
 export const FIGMA_PREFLIGHT_STEP_MESSAGE_KEYS = Object.fromEntries(
   FIGMA_PREFLIGHT_STEP_CODES.map((code) => [code, `figma.preflight.${code}`]),
 ) as { [Code in FigmaPreflightStepCode]: `figma.preflight.${Code}` };
@@ -196,4 +210,101 @@ export function isFigmaPreflightBlockingStepCode(
 ): boolean {
   return (FIGMA_PREFLIGHT_BLOCKING_STEP_CODES as readonly FigmaPreflightStepCode[])
     .includes(value);
+}
+
+export function figmaTargetFingerprint(target: FigmaTarget | undefined | null): string | null {
+  if (!target || typeof target !== 'object') return null;
+  const mode = target.mode;
+  if (mode === 'new-file') {
+    return stableFingerprint({
+      mode,
+      editorType: target.editorType ?? null,
+      planKey: target.planKey ?? null,
+      pageName: target.pageName ?? null,
+      rootFrameName: target.rootFrameName ?? null,
+    });
+  }
+  const fileKey = target.fileKey || fileKeyFromUrl(target.fileUrl);
+  if (!fileKey) return null;
+  return stableFingerprint({
+    mode,
+    fileKey,
+    nodeId: normalizeNodeId(target.nodeId ?? nodeIdFromUrl(target.fileUrl)),
+    pageName: target.pageName ?? null,
+    rootFrameName: target.rootFrameName ?? null,
+  });
+}
+
+export function figmaPreflightFingerprint(
+  preflight: FigmaPreflightSummary | undefined | null,
+): string | null {
+  if (!preflight || typeof preflight !== 'object') return null;
+  const target = preflight.target;
+  if (target.mode === 'new-file') {
+    return stableFingerprint({
+      mode: target.mode,
+      editorType: target.editorType ?? null,
+      planKey: target.planKey ?? null,
+      pageName: target.pageName ?? null,
+      rootFrameName: target.rootFrameName ?? null,
+    });
+  }
+  if (!target.fileKey) return null;
+  return stableFingerprint({
+    mode: target.mode,
+    fileKey: target.fileKey,
+    nodeId: normalizeNodeId(target.nodeId),
+    pageName: target.pageName ?? null,
+    rootFrameName: target.rootFrameName ?? null,
+  });
+}
+
+export function validateFigmaPreflightForTarget(
+  target: FigmaTarget | undefined | null,
+  preflight: FigmaPreflightSummary | undefined | null,
+): FigmaPreflightGateResult {
+  const targetFingerprint = figmaTargetFingerprint(target);
+  if (!targetFingerprint) return { ok: false, reason: 'missing_target' };
+  const preflightFingerprint = figmaPreflightFingerprint(preflight);
+  if (!preflightFingerprint) return { ok: false, reason: 'missing_preflight', fingerprint: targetFingerprint };
+  if (targetFingerprint !== preflightFingerprint) {
+    return { ok: false, reason: 'target_mismatch', fingerprint: targetFingerprint };
+  }
+  if (
+    preflight?.kind !== 'figma_preflight' ||
+    preflight.overallStatus !== 'ready' ||
+    preflight.canGenerate !== true ||
+    !preflight.steps.some((step) => step.code === 'write_probe_passed' && step.status === 'passed')
+  ) {
+    return { ok: false, reason: 'not_ready', fingerprint: targetFingerprint };
+  }
+  return { ok: true, reason: 'ready', fingerprint: targetFingerprint };
+}
+
+function stableFingerprint(value: Record<string, unknown>): string {
+  return JSON.stringify(
+    Object.keys(value)
+      .sort()
+      .reduce<Record<string, unknown>>((acc, key) => {
+        const item = value[key];
+        if (item !== undefined && item !== null && item !== '') acc[key] = item;
+        return acc;
+      }, {}),
+  );
+}
+
+function normalizeNodeId(value: string | undefined | null): string | undefined {
+  return value ? value.replace(/-/g, ':') : undefined;
+}
+
+function nodeIdFromUrl(url: string | undefined): string | undefined {
+  if (!url) return undefined;
+  const query = /[?&]node-id=([^&#]+)/.exec(url)?.[1];
+  return normalizeNodeId(query ? decodeURIComponent(query) : undefined);
+}
+
+function fileKeyFromUrl(url: string | undefined): string | undefined {
+  if (!url) return undefined;
+  const match = /^https:\/\/(?:www\.)?figma\.com\/(?:design|file|board)\/([^/?#]+)(?:[/?#]|$)/i.exec(url);
+  return match?.[1];
 }

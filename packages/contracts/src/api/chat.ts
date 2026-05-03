@@ -1,4 +1,6 @@
 import type { ProjectFile } from './files';
+import type { FigmaOutputSettings, FigmaTarget } from './projects';
+import type { FigmaPreflightSummary } from '../figma-preflight';
 import type { FigmaNativeResult } from '../figma-result';
 
 export type ChatRole = 'user' | 'assistant';
@@ -14,6 +16,9 @@ export interface ChatRequest {
   skillId?: string | null;
   designSystemId?: string | null;
   attachments?: string[];
+  figmaTarget?: FigmaTarget | null;
+  figmaOutputSettings?: FigmaOutputSettings | null;
+  figmaPreflight?: FigmaPreflightSummary | null;
   model?: string | null;
   reasoning?: string | null;
 }

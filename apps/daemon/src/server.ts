@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import fs from 'node:fs';
 import os from 'node:os';
+import { validateFigmaPreflightForTarget } from '@open-design/contracts';
 import { composeSystemPrompt } from './prompts/system.js';
 import {
   detectAgents,
@@ -267,6 +268,21 @@ function sendApiError(res, status, code, message, init = {}) {
  */
 function createSseErrorPayload(code, message, init = {}) {
   return { message, error: createCompatApiError(code, message, init) };
+}
+
+function figmaPreflightGateMessage(reason) {
+  switch (reason) {
+    case 'missing_target':
+      return 'Choose a Figma target before starting Figma-native generation.';
+    case 'missing_preflight':
+      return 'Run the Figma authorization and write permission check before generation.';
+    case 'target_mismatch':
+      return 'The Figma target changed after the last write check. Re-run the check before generation.';
+    case 'not_ready':
+      return 'Figma write permission has not passed yet. Complete the authorization wizard before generation.';
+    default:
+      return 'Complete the Figma authorization and write permission check before generation.';
+  }
 }
 
 const UPLOAD_DIR = path.join(os.tmpdir(), 'od-uploads');
@@ -1689,6 +1705,15 @@ export async function startServer({ port = 7456, returnServer = false } = {}) {
     });
   };
 
+  const isFigmaSkill = async (requestedSkillId, projectSkillId) => {
+    const effectiveSkillId = typeof requestedSkillId === 'string' && requestedSkillId
+      ? requestedSkillId
+      : projectSkillId;
+    if (!effectiveSkillId) return false;
+    const skill = (await listSkills(SKILLS_DIR)).find((item) => item.id === effectiveSkillId);
+    return skill?.mode === 'figma' || skill?.surface === 'figma';
+  };
+
   const startChatRun = async (chatBody, run) => {
     /** @type {Partial<ChatRequest> & { imagePaths?: string[] }} */
     chatBody = chatBody || {};
@@ -1704,6 +1729,9 @@ export async function startServer({ port = 7456, returnServer = false } = {}) {
       skillId,
       designSystemId,
       attachments = [],
+      figmaTarget,
+      figmaOutputSettings,
+      figmaPreflight,
       model,
       reasoning,
     } = chatBody;
@@ -1717,6 +1745,31 @@ export async function startServer({ port = 7456, returnServer = false } = {}) {
     if (!def.bin) return design.runs.fail(run, 'AGENT_UNAVAILABLE', 'agent has no binary');
     if (typeof message !== 'string' || !message.trim()) {
       return design.runs.fail(run, 'BAD_REQUEST', 'message required');
+    }
+    const project = typeof projectId === 'string' && projectId ? getProject(db, projectId) : null;
+    const storedMetadata = project?.metadata;
+    const effectiveFigmaOutputSettings = figmaOutputSettings && typeof figmaOutputSettings === 'object'
+      ? figmaOutputSettings
+      : storedMetadata?.figmaOutputSettings;
+    const requiresFigmaPreflight =
+      effectiveFigmaOutputSettings?.outputMode === 'figma-native' ||
+      (await isFigmaSkill(skillId, project?.skillId));
+    if (requiresFigmaPreflight) {
+      const effectiveTarget = figmaTarget && typeof figmaTarget === 'object'
+        ? figmaTarget
+        : storedMetadata?.figmaTarget;
+      const effectivePreflight = figmaPreflight && typeof figmaPreflight === 'object'
+        ? figmaPreflight
+        : storedMetadata?.figmaPreflight;
+      const gate = validateFigmaPreflightForTarget(effectiveTarget, effectivePreflight);
+      if (!gate.ok) {
+        return design.runs.fail(
+          run,
+          'VALIDATION_FAILED',
+          figmaPreflightGateMessage(gate.reason),
+          { retryable: true, details: { reason: gate.reason } },
+        );
+      }
     }
     if (run.cancelRequested || design.runs.isTerminal(run.status)) return;
 

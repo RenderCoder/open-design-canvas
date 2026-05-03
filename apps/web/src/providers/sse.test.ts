@@ -333,6 +333,19 @@ describe('streamViaDaemon', () => {
       conversationId: 'conversation-1',
       assistantMessageId: 'assistant-1',
       clientRequestId: 'client-1',
+      figmaTarget: { mode: 'existing-file', fileKey: 'file-1' },
+      figmaOutputSettings: { outputMode: 'figma-native' },
+      figmaPreflight: {
+        kind: 'figma_preflight',
+        overallStatus: 'ready',
+        steps: [
+          { code: 'write_probe_passed', status: 'passed', messageKey: 'figma.preflight.write_probe_passed' },
+        ],
+        target: { mode: 'existing-file', fileKey: 'file-1' },
+        lastCheckedAt: '2026-05-03T08:00:00.000Z',
+        canGenerate: true,
+        userAction: 'none',
+      },
       onRunCreated,
       onRunStatus,
       onRunEventId,
@@ -343,6 +356,12 @@ describe('streamViaDaemon', () => {
       conversationId: 'conversation-1',
       assistantMessageId: 'assistant-1',
       clientRequestId: 'client-1',
+      figmaTarget: { mode: 'existing-file', fileKey: 'file-1' },
+      figmaOutputSettings: { outputMode: 'figma-native' },
+      figmaPreflight: {
+        kind: 'figma_preflight',
+        canGenerate: true,
+      },
     });
     expect(onRunCreated).toHaveBeenCalledWith('run-1');
     expect(onRunStatus).toHaveBeenCalledWith('queued');

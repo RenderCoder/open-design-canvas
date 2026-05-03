@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useT } from '../i18n';
 import type { Dict } from '../i18n/types';
 import { runFigmaMcpSetupAction, runFigmaPreflight } from '../providers/registry';
@@ -62,6 +62,10 @@ export function FigmaMcpAuthorizationWizard({
   const checkedAt = currentPreflight?.lastCheckedAt
     ? formatCheckedAt(currentPreflight.lastCheckedAt)
     : null;
+
+  useEffect(() => {
+    setLocalPreflight(preflight);
+  }, [preflight]);
 
   async function runCheck(checkWriteAccess: boolean) {
     if (!projectId) return;

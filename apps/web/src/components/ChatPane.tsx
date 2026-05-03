@@ -8,6 +8,7 @@ import type {
   ChatMessage,
   Conversation,
   FigmaOutputSettings,
+  FigmaPreflightGateResult,
   FigmaPreflightSummary,
   FigmaTarget,
   Project,
@@ -66,6 +67,7 @@ interface Props {
   figmaTarget?: FigmaTarget;
   figmaOutputSettings?: FigmaOutputSettings;
   figmaPreflight?: FigmaPreflightSummary;
+  figmaPreflightGate?: FigmaPreflightGateResult;
   onFigmaTargetChange?: (next: {
     figmaTarget: FigmaTarget;
     figmaOutputSettings: FigmaOutputSettings;
@@ -112,6 +114,7 @@ export function ChatPane({
   figmaTarget,
   figmaOutputSettings,
   figmaPreflight,
+  figmaPreflightGate,
   onFigmaTargetChange,
   onProjectUpdate,
   figmaDesignSystemTitle,
@@ -441,6 +444,7 @@ export function ChatPane({
             figmaTarget={figmaTarget}
             figmaOutputSettings={figmaOutputSettings}
             figmaPreflight={figmaPreflight}
+            figmaPreflightGate={figmaPreflightGate}
             onFigmaTargetChange={onFigmaTargetChange}
             onProjectUpdate={onProjectUpdate}
             figmaDesignSystemTitle={figmaDesignSystemTitle}
