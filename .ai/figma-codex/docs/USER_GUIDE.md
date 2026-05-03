@@ -31,8 +31,38 @@ The mocked test exercises skill discovery, Figma-native prompt composition,
 Codex JSONL MCP events, Figma result parsing, and the UI result card without
 calling the real Figma MCP server.
 
+## UI-first authorization flow
+
+普通用户优先走 Open Design Canvas 里的可视化向导，而不是先读命令行
+JSON 或手动跑脚本：
+
+1. Create or open a project and choose a Figma-native skill.
+2. Select the Figma target: an existing file URL, a selection URL, or a new-file
+   request.
+3. Click **Check** in the Figma MCP authorization wizard. The app checks Codex
+   CLI, the configured Figma MCP server, OAuth state, and read access.
+4. If setup or OAuth is missing, click **Prepare setup** or **Authorize Figma**.
+   The wizard shows the safest available action for the current runtime.
+5. After completing the setup step, click **Recheck**.
+6. Click **Check write permission**. This runs the small write probe described
+   below. Generation stays blocked until this check passes.
+7. Send the design brief only after the wizard says the target is ready.
+
+Runtime differences:
+
+- In Electron and packaged desktop builds, external `http(s)`, `figma:`, and
+  `mailto:` links opened by the wizard go to the system browser, so the Open
+  Design window stays on the authorization screen. The current Codex CLI OAuth
+  path can still require copying and running a manual command because Codex
+  exposes `codex mcp login figma` as an interactive command today.
+- In the Web runtime, the wizard always keeps a copy-command plus recheck
+  fallback. Use the command shown by **Prepare setup** or **Authorize Figma**,
+  finish the terminal/browser flow, then return to the app and recheck.
+
 ## Configure real Figma MCP access
 
+The app wizard is the normal path. These commands are the developer diagnostic
+or fallback path when the wizard asks you to set up Codex/Figma manually.
 Install the official Remote MCP server in Codex CLI:
 
 ```bash
@@ -69,7 +99,12 @@ seat, and file permissions. More setup detail lives in
    - an existing Figma file URL,
    - a selection URL when updating a specific node, or
    - a request to create a new Figma Design file.
-5. Send the brief. A good first brief names the surface, audience, platform,
+5. Complete the Figma MCP authorization wizard:
+   - **Check** verifies Codex CLI, Figma MCP, OAuth, and target read access.
+   - **Prepare setup** or **Authorize Figma** gives the next safe setup action
+     when something is missing.
+   - **Check write permission** verifies edit access with the tiny probe.
+6. Send the brief. A good first brief names the surface, audience, platform,
    content requirements, and the target Figma file.
 
 Example prompt:
@@ -100,12 +135,34 @@ The Figma result card summarizes the structured `figma_native_result` report:
 Treat a completed result with known issues as a reviewable draft, not as a
 silent pass. The result card should make remaining work explicit.
 
+## Write probe and cleanup
+
+The write-permission check creates or updates one tiny frame named
+`ODC MCP Write Probe` on a page named `ODC MCP Probe`. Repeated checks should
+reuse that same page and frame. The probe only proves that the authenticated
+Figma account can edit the selected target; it is not part of the generated
+design.
+
+Clean up only the Open Design Canvas-owned probe:
+
+- Safe to delete: the page named `ODC MCP Probe` and the frame named
+  `ODC MCP Write Probe`.
+- Do not delete user-created pages, frames, components, selected design nodes,
+  or nearby content.
+- If the probe page contains anything except the named probe frame and helper
+  marker text/metadata, inspect it manually and remove only the probe frame.
+
 ## Troubleshooting
 
 | Symptom | Likely cause | What to do |
 |---|---|---|
-| Figma MCP missing | Codex has no enabled `figma` MCP server | Run `codex mcp add figma --url https://mcp.figma.com/mcp`, then `codex mcp login figma`, then the repo health check. |
-| Auth or permission error | OAuth expired, wrong account, no Full seat, or no edit access | Re-run `codex mcp login figma`; confirm the authenticated account can edit the file. |
+| Codex CLI unavailable | Codex is not installed or not on `PATH` for the daemon process | Install Codex CLI, restart `pnpm tools-dev run web`, then click **Check** again. |
+| Figma MCP missing | Codex has no enabled `figma` MCP server | Click **Prepare setup** and use the shown command. Developer fallback: run `codex mcp add figma --url https://mcp.figma.com/mcp`, then recheck. |
+| Figma MCP URL wrong | The configured MCP server does not point at `https://mcp.figma.com/mcp` | Click **Prepare setup**, replace the server config with the official URL, then recheck. |
+| Auth required or user cancelled | OAuth is missing/expired, the login was cancelled, or Codex could not complete the interactive login | Click **Authorize Figma**. In Electron, external auth/docs URLs open in the system browser when available; otherwise copy the shown command and run it locally. |
+| Company network or proxy blocks OAuth/MCP | Browser login, Codex MCP, or `mcp.figma.com` cannot be reached | Try a network with Figma access, configure the corporate proxy for Codex, or ask IT to allow Figma MCP traffic. Then recheck. |
+| No Full seat or edit permission | The account can read the file but cannot write to it | Ask for a Full seat or equivalent edit capability and edit access to the target file, or choose a file you can edit. Then click **Check write permission**. |
+| Target is stale after edits | The Figma file URL, node ID, page, or new-file settings changed after the last passed check | Click **Check** again. Generation is blocked until the new target fingerprint has a passed write probe. |
 | New-file flow asks for a plan | Figma requires a team/org target | Use `whoami` through Figma MCP, choose the intended plan, and pass the returned plan key to the create-new-file flow. |
 | Rate-limit or timeout | Large file, large selection, network limits, or Figma throttling | Retry with a smaller selected frame, call `get_metadata` first, and work on smaller nodes. |
 | Malformed result card | Agent returned prose without a valid `figma_native_result` JSON object | Ask the agent to return only the structured report after the canvas write, then keep the previous canvas nodes. |

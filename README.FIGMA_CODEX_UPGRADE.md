@@ -51,11 +51,12 @@ bd init
 # 3. 创建 AI 专用任务图，带依赖关系
 bash .ai/figma-codex/scripts/init-beads-tasks.sh
 
-# 4. 配置 Figma Remote MCP 给 Codex CLI
+# 4. 开发者诊断路径：配置 Figma Remote MCP 给 Codex CLI
+# 普通用户主路径是在 Open Design Canvas 界面里完成 Figma MCP 向导。
 codex mcp add figma --url https://mcp.figma.com/mcp
 # 按提示完成 Figma OAuth 授权
 
-# 5. 验证本机 Codex 是否能看到 Figma MCP 配置
+# 5. 开发者诊断路径：验证本机 Codex 是否能看到 Figma MCP 配置
 bash .ai/figma-codex/scripts/check-figma-mcp.sh
 
 # 6. 启动 Codex，让它按任务图逐项改造
@@ -124,9 +125,14 @@ Open Design 显示 Figma result card 与 lint report
 
 ## 用户与维护文档
 
-- 新用户先读 [Figma-native user guide](.ai/figma-codex/docs/USER_GUIDE.md)：包含 mocked flow、真实 MCP 配置、第一次 canvas generation、result card 解读和 troubleshooting。
-- Figma/Codex 连接细节见 [Figma MCP setup](.ai/figma-codex/docs/FIGMA_MCP_SETUP.md)。
-- 贡献者扩展 skills、design systems、result schema、parser 或 UI 时读 [Maintainer guide](.ai/figma-codex/docs/MAINTAINER_GUIDE.md)。
+普通用户主路径是在 App 里选择 Figma-native skill 和 Figma target，然后按
+可视化向导完成：检查 → 准备 setup / 授权 Figma → 重新检查 →
+检查写权限 → 开始生成。命令行脚本保留为开发者诊断工具，或在 Web/Electron
+向导需要手动 fallback 时复制执行。
+
+- 新用户先读 [Figma-native user guide](.ai/figma-codex/docs/USER_GUIDE.md)：包含 UI-first 授权向导、mocked flow、第一次 canvas generation、写探针清理、result card 解读和 troubleshooting。
+- Figma/Codex 连接细节见 [Figma MCP setup](.ai/figma-codex/docs/FIGMA_MCP_SETUP.md)：这些 CLI 命令主要用于开发者诊断、真实 smoke test，或向导要求手动 setup 时的 fallback。
+- 贡献者扩展 skills、design systems、preflight contract、result schema、parser 或 UI 时读 [Maintainer guide](.ai/figma-codex/docs/MAINTAINER_GUIDE.md)。
 - 发布前的授权、商标和第三方归属边界见 [license / trademark / attribution notes](.ai/figma-codex/docs/LICENSE_TRADEMARK_ATTRIBUTION.md)。
 - 发布候选版本前检查 [release readiness checklist](.ai/figma-codex/docs/RELEASE_READINESS.md)：包含 pass/defer 状态、验证矩阵、known limitations 和 roadmap。
 - 没有 Figma credentials 的贡献者可以运行：

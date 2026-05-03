@@ -16,6 +16,60 @@ rendering. User setup and first-run instructions live in
   variables, styles, or Auto Layout.
 - Keep Figma-native mode additive. Existing prototype, deck, template, image,
   video, and audio workflows must continue to work.
+- Never store OAuth tokens, private file IDs, customer file URLs, or private
+  screenshots in fixtures, logs, docs, Beads notes, or commits.
+
+## 授权 / preflight contract
+
+The visual wizard is the user path. CLI scripts are developer diagnostics and
+fallbacks. Keep the app contract stable enough that Web, Electron, daemon, and
+Codex behavior can evolve independently.
+
+Shared contract:
+
+- `packages/contracts/src/figma-preflight.ts` owns `FigmaPreflightSummary`,
+  `FigmaPreflightStepCode`, default step-to-status/action mapping, safe details,
+  target fingerprints, and the generation gate helper.
+- `packages/contracts/src/api/projects.ts` owns
+  `FigmaMcpSetupActionRequest`, `FigmaMcpSetupAction`, and the allowed setup
+  action statuses.
+- `FigmaPreflightSummary.canGenerate` is true only after the selected target has
+  a ready status and a passed `write_probe_passed` step.
+- `validateFigmaPreflightForTarget` rejects missing preflight, missing target,
+  stale target fingerprints, not-ready summaries, and summaries without a
+  passed write probe.
+
+Daemon contract:
+
+- `POST /api/projects/:id/figma/preflight` runs the checks for the selected
+  target and stores `metadata.figmaPreflight` on the project.
+- `POST /api/projects/:id/figma/mcp-action` accepts `prepare_mcp_setup`,
+  `start_mcp_login`, and `poll_mcp_status`.
+- `apps/daemon/src/server.ts` blocks Figma-native generation when the target is
+  missing, the preflight is stale, or write permission has not passed.
+- `apps/daemon/src/figma-preflight.ts` owns the runner logic and must keep
+  `safeDetails` redacted. It may expose command text, expected MCP URL, safe
+  host names, retry hints, probe names, and error classes; it must not expose
+  tokens or private design content.
+
+Setup action contract:
+
+- `FigmaMcpSetupAction` supports `manual_command` today because Codex exposes
+  `codex mcp login figma` as an interactive command.
+- `canOpenExternal` and `url` exist for future Codex/Figma flows that can return
+  an authorization URL. Electron already hands external `http(s)`, `figma:`, and
+  `mailto:` links to the system browser.
+- Web must always keep a copy-command and recheck fallback.
+
+Write probe contract:
+
+- The probe page is `ODC MCP Probe`; the probe frame is
+  `ODC MCP Write Probe`.
+- Repeated probes reuse the same page/frame instead of creating unbounded test
+  nodes.
+- Cleanup instructions must name only Open Design Canvas-owned nodes. Never ask
+  users or agents to delete arbitrary pages, selected content, or nearby design
+  nodes.
 
 ## 新增一个 Figma-native skill
 
@@ -124,6 +178,11 @@ Use the smallest relevant command first:
 |---|---|
 | Skill metadata or registry | `pnpm --filter @open-design/daemon test -- skills` |
 | Prompt directive or project metadata | `pnpm --filter @open-design/daemon test -- prompts` |
+| Figma preflight runner or setup action | `pnpm --filter @open-design/daemon test -- figma-preflight` |
+| Figma preflight routes or stale-target gate | `pnpm --filter @open-design/daemon test -- figma-preflight-route` |
+| Figma preflight contract helpers | `pnpm --filter @open-design/web test -- figma-preflight-contract` |
+| Authorization wizard UI | `pnpm --filter @open-design/web test -- FigmaMcpAuthorizationWizard` |
+| Web daemon provider actions | `pnpm --filter @open-design/web test -- registry` |
 | Result parser or card | `pnpm --filter @open-design/web test -- FigmaResultCard` |
 | Mocked end-to-end Figma path | `pnpm --filter @open-design/e2e test -- figma-native-mocked-flow.test.tsx` |
 | Shared contracts or broad TS changes | `pnpm typecheck` |
@@ -132,12 +191,26 @@ Real Figma smoke tests are optional unless a task explicitly requires them. When
 they are required, first run the mocked flow, then verify MCP configuration with
 `.ai/figma-codex/scripts/check-figma-mcp.sh`, then use a non-private test file.
 
+The mocked authorization matrix lives in
+[`FIGMA_MCP_SETUP.md`](FIGMA_MCP_SETUP.md). Keep fixtures sanitized: use
+placeholder file keys, redacted URLs, and synthetic Codex JSONL. Do not add real
+OAuth sessions, real customer file IDs, screenshots, or private design text to
+tests.
+
 ## Troubleshooting and maintainer risks
 
 - Missing MCP: keep normal engineering flows unblocked with `required = false`;
-  real canvas tasks must stop before `use_figma` and report the remediation.
+  real canvas tasks must stop before `use_figma`, show the wizard action, and
+  report the remediation.
+- Wrong MCP URL: classify it as `figma_mcp_url_invalid`, expose only the safe
+  host and expected official URL, and keep the fix inside setup actions.
+- OAuth cancelled: classify it as `auth_required` / `authorize_figma`; do not
+  treat a cancelled interactive login as write-permission failure.
 - Permissions: existing-file writes require the authenticated Figma user to have
   edit access and the needed seat.
+- Target stale: if the URL, node, page, root frame, plan, or new-file setting
+  changes after a passed check, generation must re-run preflight before sending
+  the Codex job.
 - Rate limits and large files: prefer `get_metadata` on the page or parent
   node, then inspect or update smaller frames.
 - Malformed result: fix the parser only when the report contract is genuinely

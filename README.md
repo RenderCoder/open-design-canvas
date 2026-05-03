@@ -333,11 +333,19 @@ frames, components, variables, styles, Auto Layout, and semantic layer names.
 Start with the upgrade docs:
 
 - [Figma-native user guide](.ai/figma-codex/docs/USER_GUIDE.md) — mocked flow,
-  first canvas generation, result card fields, limitations, and troubleshooting.
+  UI-first authorization wizard, first canvas generation, result card fields,
+  limitations, and troubleshooting.
 - [Figma MCP setup](.ai/figma-codex/docs/FIGMA_MCP_SETUP.md) — Codex MCP setup,
-  OAuth, seat/permission notes, health checks, and smoke-test guidance.
+  OAuth, seat/permission notes, health checks, and smoke-test guidance. Treat
+  these commands as developer diagnostics or fallback when the wizard asks for
+  a manual setup step.
 - [Maintainer guide](.ai/figma-codex/docs/MAINTAINER_GUIDE.md) — how to add
-  Figma-native skills, design systems, schemas, parser fixtures, and UI tests.
+  Figma-native skills, design systems, preflight contracts, schemas, parser
+  fixtures, and UI tests.
+
+For normal use, choose a Figma-native skill and target in the app, then complete
+the visual Figma MCP wizard: **Check** → **Prepare setup / Authorize Figma** →
+**Recheck** → **Check write permission** → generate.
 
 New contributors can validate the Figma-native path without Figma credentials:
 

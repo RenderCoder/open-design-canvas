@@ -321,6 +321,27 @@ pnpm tools-dev run web
 
 输入需求，回车，看 question form 跳出来，填，看 todo 卡片流动，看 artifact 渲染。点 **Save to disk** 或导出整个项目 ZIP。
 
+### Figma-native 画布模式
+
+这个 fork 正在升级为 **Open Design Canvas**：基于 Open Design、Codex CLI、
+Beads 和 Figma Remote MCP 的 Figma-native AI 设计工作台。Figma-native 模式是
+增量能力；原有 HTML prototype、deck、media 和 template 流程仍然有效。
+
+普通用户主路径是在界面里选择 Figma-native skill 和 Figma target，然后完成
+可视化 Figma MCP 向导：**检查** → **准备 setup / 授权 Figma** →
+**重新检查** → **检查写权限** → 开始生成。命令行脚本只作为开发者诊断工具，
+或在 Web/Electron 向导要求手动 fallback 时复制执行。
+
+入口文档：
+
+- [Figma-native user guide](.ai/figma-codex/docs/USER_GUIDE.md)：UI-first
+  授权向导、第一次 canvas generation、写探针清理、result card 和排错。
+- [Figma MCP setup](.ai/figma-codex/docs/FIGMA_MCP_SETUP.md)：Codex MCP
+  setup、OAuth、seat/permission、health check 和真实 smoke test。
+- [Maintainer guide](.ai/figma-codex/docs/MAINTAINER_GUIDE.md)：扩展
+  Figma-native skills、design systems、preflight contract、schema、parser 和 UI
+  tests。
+
 ### 第一次跑起来（`./.od/` 解释）
 
 Daemon 在仓库根下维护一个隐藏目录，里面所有内容都已 gitignore，纯本机数据，**不要** commit。
